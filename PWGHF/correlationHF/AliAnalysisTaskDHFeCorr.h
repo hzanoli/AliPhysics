@@ -151,18 +151,6 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   // D meson QA histogram configuration
   dhfe::qa::DMesonQAConfig fDMesonQAConfig;  //!
 
-  /*
-  dhfe::model::DMesonDatabase fDMesonDatabase;  //!
-
-  // Objects to be saved in the tree
-  dhfe::model::EventId fEventId;    //!
-  dhfe::model::Event fEvent;        //!
-  dhfe::model::Electron fElectron;  //!
-  dhfe::model::DMeson fDmeson;      //!
-  dhfe::model::MCParticle fMCE;     //!
-  dhfe::model::MCParticle fMCD;     //!
-  
-
   // Main electron QA after filter bit, track and PID
   dhfe::qa::ElectronQAHist fEQAFilterBit;  //!
   dhfe::qa::ElectronQAHist fEQATrack;      //!
@@ -176,6 +164,17 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   // D meson QA after the filtering and preselection cuts
   dhfe::qa::DMesonQAHist fDMesonQAFiltering;     //!
   dhfe::qa::DMesonQAHist fDMesonQAPreSelection;  //!
+
+  /*
+  dhfe::model::DMesonDatabase fDMesonDatabase;  //!
+  // Objects to be saved in the tree
+  dhfe::model::EventId fEventId;    //!
+  dhfe::model::Event fEvent;        //!
+  dhfe::model::Electron fElectron;  //!
+  dhfe::model::DMeson fDmeson;      //!
+  dhfe::model::MCParticle fMCE;     //!
+  dhfe::model::MCParticle fMCD;     //!
+  
 
   AliAODEvent *GetAODEvent() const;
 

@@ -195,13 +195,11 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
   fDmesonTree = std::unique_ptr<TTree> (new TTree("dmeson", "dmeson", 99, nullptr));
   fElectronTreeMC = std::unique_ptr<TTree>(new TTree("electron_mc", "electron_mc", 99, nullptr));
   fDmesonTreeMC = std::unique_ptr<TTree>(new TTree("dmeson_mc", "dmeson_mc", 99, nullptr));
-
-  /*   
+  
   if (fConfig.ProcessDMeson()) {
     fDMesonSelection.RectangularPreSelection()->GetPidHF()->SetPidResponse(
         fInputHandler->GetPIDResponse());
   }
-  */
 
   // Remove the trigger mask from the automatic cuts
   fEventCuts.OverrideAutomaticTriggerSelection(AliVEvent::kAny);
@@ -217,7 +215,7 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
     fMCD.AddToTree(*fDmesonTreeMC, dhfe::configuration::kBasketSize);
     fMCE.AddToTree(*fElectronTreeMC, dhfe::configuration::kBasketSize);
   }
-  
+  */
 
   // Event QA
   fEventCuts.AddQAplotsToList(&fOptEvent);
@@ -250,7 +248,6 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
 
   fDMesonQAPreSelection = qa::DMesonQAHist(fDMesonQAConfig, "PreSelection");
   fDMesonQAPreSelection.AddToOutput(fOptDMeson);
-  */
 
   PostOutput();
 }
