@@ -187,8 +187,8 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
   }
 
    ConfigureFromYaml();
-  // Additional setup for the task that needs to be done at the time of run time
 
+  // Additional setup for the task that needs to be done at the time of run time
   fEventTree = std::unique_ptr<TTree>(new TTree("event", "event", 99, nullptr));
   fElectronTree = std::unique_ptr<TTree> (new TTree("electron", "electron", 99, nullptr)); 
   fNHFePairTree = std::unique_ptr<TTree> (new TTree("nhfe_pair", "nhfe_pair", 99, nullptr));
@@ -197,8 +197,7 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
   fDmesonTreeMC = std::unique_ptr<TTree>(new TTree("dmeson_mc", "dmeson_mc", 99, nullptr));
   
   if (fConfig.ProcessDMeson()) {
-    fDMesonSelection.RectangularPreSelection()->GetPidHF()->SetPidResponse(
-        fInputHandler->GetPIDResponse());
+    fDMesonSelection.RectangularPreSelection()->GetPidHF()->SetPidResponse(GetPIDResponse());
   }
 
   // Remove the trigger mask from the automatic cuts
@@ -206,7 +205,6 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
 
   fOptEvent.SetOwner(kTRUE);
 
-  /*  
   fEvent.AddToTree(*fEventTree, dhfe::configuration::kBasketSize);
   fElectron.AddToTree(*fElectronTree, dhfe::configuration::kBasketSize, IsMC());
   fDmeson.AddToTree(*fDmesonTree, dhfe::configuration::kBasketSize, IsMC());
@@ -215,7 +213,6 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
     fMCD.AddToTree(*fDmesonTreeMC, dhfe::configuration::kBasketSize);
     fMCE.AddToTree(*fElectronTreeMC, dhfe::configuration::kBasketSize);
   }
-  */
 
   // Event QA
   fEventCuts.AddQAplotsToList(&fOptEvent);
@@ -274,8 +271,24 @@ void AliAnalysisTaskDHFeCorr::ConfigureFromYaml() {
   }
 }
 
+AliAODEvent *AliAnalysisTaskDHFeCorr::GetAODEvent() const {
+  return dynamic_cast<AliAODEvent *>(InputEvent());
+};
 
-/*
+TClonesArray *AliAnalysisTaskDHFeCorr::GetMCInfo() const {
+  return dynamic_cast<TClonesArray *>(
+      InputEvent()->GetList()->FindObject(AliAODMCParticle::StdBranchName()));
+}
+
+AliPIDResponse *AliAnalysisTaskDHFeCorr::GetPIDResponse() const {
+  return fInputHandler->GetPIDResponse();
+}
+
+AliMultSelection *AliAnalysisTaskDHFeCorr::GetMultiSelection() const {
+  return dynamic_cast<AliMultSelection *>(
+      InputEvent()->FindListObject("MultSelection"));
+}
+
 void AliAnalysisTaskDHFeCorr::UserExec(Option_t *) {
   if (!InputEvent()) {
     PostOutput();
@@ -297,21 +310,16 @@ void AliAnalysisTaskDHFeCorr::UserExec(Option_t *) {
     fEventTree->Fill();
   }
 
+  /*  
   if (fConfig.ProcessElectron()) ElectronAnalysis();
+  */
 
   PostOutput();
 }
 
-AliAODEvent *AliAnalysisTaskDHFeCorr::GetAODEvent() const {
-  return dynamic_cast<AliAODEvent *>(InputEvent());
-};
 
 
-
-AliMultSelection *AliAnalysisTaskDHFeCorr::GetMultiSelection() const {
-  return dynamic_cast<AliMultSelection *>(
-      InputEvent()->FindListObject("MultSelection"));
-}
+/*
 
 std::vector<mdl::Electron> AliAnalysisTaskDHFeCorr::SelectFilterBit(
     unsigned int filter_bit) {
@@ -402,14 +410,9 @@ std::vector<mdl::Electron> AliAnalysisTaskDHFeCorr::AddAllHFeToTracks(
   return all_tracks;
 }
 
-AliPIDResponse *AliAnalysisTaskDHFeCorr::GetPIDResponse() const {
-  return fInputHandler->GetPIDResponse();
-}
 
-TClonesArray *AliAnalysisTaskDHFeCorr::GetMCInfo() const {
-  return dynamic_cast<TClonesArray *>(
-      InputEvent()->GetList()->FindObject(AliAODMCParticle::StdBranchName()));
-}
+
+
 
 */
 

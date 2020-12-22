@@ -100,11 +100,10 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   ~AliAnalysisTaskDHFeCorr();
 
   void UserCreateOutputObjects(); 
-  /*
-  void UserExec(Option_t *option);
 
-  //bool IsMC() const { return fConfig.IsMC(); }
-    */
+  bool IsMC() const { return fConfig.IsMC(); }
+
+  void UserExec(Option_t *option);
 
  private:
    void DefineIO();
@@ -165,8 +164,6 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   dhfe::qa::DMesonQAHist fDMesonQAFiltering;     //!
   dhfe::qa::DMesonQAHist fDMesonQAPreSelection;  //!
 
-  /*
-  dhfe::model::DMesonDatabase fDMesonDatabase;  //!
   // Objects to be saved in the tree
   dhfe::model::EventId fEventId;    //!
   dhfe::model::Event fEvent;        //!
@@ -174,19 +171,8 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   dhfe::model::DMeson fDmeson;      //!
   dhfe::model::MCParticle fMCE;     //!
   dhfe::model::MCParticle fMCD;     //!
-  
 
   AliAODEvent *GetAODEvent() const;
-
-  std::vector<dhfe::model::Electron> ElectronAnalysis();
-
-  // Given a vector with the tracks that fulfill the track cuts
-  // (selected_tracks) and another one that fulfills both track and PID
-  // selection (selected_electrons), returns a vector with the content of
-  // selected_electrons plus the HFe tracks in selected_tracks.
-  static std::vector<dhfe::model::Electron> AddAllHFeToTracks(
-      const std::vector<dhfe::model::Electron> &selected_tracks,
-      const std::vector<dhfe::model::Electron> &selected_electrons);
 
   template <typename T>
   void FillTreeFromStdContainer(std::vector<T> &items, T *item_to_fill,
@@ -201,6 +187,21 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   // Returns the PID response task. 
   AliPIDResponse *GetPIDResponse() const;
 
+  /*
+  dhfe::model::DMesonDatabase fDMesonDatabase;  //!
+
+  std::vector<dhfe::model::Electron> ElectronAnalysis();
+
+  // Given a vector with the tracks that fulfill the track cuts
+  // (selected_tracks) and another one that fulfills both track and PID
+  // selection (selected_electrons), returns a vector with the content of
+  // selected_electrons plus the HFe tracks in selected_tracks.
+  static std::vector<dhfe::model::Electron> AddAllHFeToTracks(
+      const std::vector<dhfe::model::Electron> &selected_tracks,
+      const std::vector<dhfe::model::Electron> &selected_electrons);
+
+  
+
   // Given an AOD filter bit, returns the tracks in this event that fulfill
   // this filter bit selection.
   std::vector<dhfe::model::Electron> SelectFilterBit(unsigned int filter_bit);
@@ -210,7 +211,6 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   
 };
 
-/*
 template <typename T>
 void AliAnalysisTaskDHFeCorr::FillTreeFromStdContainer(std::vector<T> &items,
                                                        T *item_to_fill,
@@ -220,7 +220,6 @@ void AliAnalysisTaskDHFeCorr::FillTreeFromStdContainer(std::vector<T> &items,
     tree.Fill();
   }
 }
-*/
 
 
 #endif
