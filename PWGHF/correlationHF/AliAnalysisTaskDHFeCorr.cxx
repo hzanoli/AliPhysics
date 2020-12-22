@@ -20,7 +20,6 @@ namespace yaml = dhfe::yaml;
 namespace sel = dhfe::selection;
 
 */
-
 dhfe::config::DHFeTaskConfig::DHFeTaskConfig(
     const PWG::Tools::AliYAMLConfiguration &config) {
   const std::string top_level = "task";
@@ -44,6 +43,20 @@ dhfe::config::DHFeTaskConfig::DHFeTaskConfig(
                      fSaveEvent, true);
 }
 
+std::ostream &operator<<(std::ostream &os,
+                         dhfe::config::DHFeTaskConfig const &config) {
+  os <<"----- DHFe Task configuration -----" << std::endl;
+  os <<"Process simulated data (MC mode): " << std::boolalpha << config.IsMC() << std::endl;
+  os <<"Save QA histograms: " << std::boolalpha << config.SaveHistograms() << std::endl;
+  os <<"Calculate only the efficiency: " << std::boolalpha << 
+    config.CalculateOnlyEfficiency() << std::endl;
+  os <<"Process electrons: " << std::boolalpha << config.ProcessElectron() << std::endl;
+  os <<"Process dmesons: " << std::boolalpha << config.ProcessDMeson() << std::endl;
+  os << "Save event:" <<  std::boolalpha << config.SaveEvent() << std::endl;
+
+  return os;
+}
+
 
 ClassImp(AliAnalysisTaskDHFeCorr);
 
@@ -64,7 +77,17 @@ AliAnalysisTaskDHFeCorr::AliAnalysisTaskDHFeCorr(const char *name,
   DefineIO();
 
   SelectCollisionCandidates(trigger);
-  //ConfigureFromYaml();
+  
+  TGrid::Connect("alien://");
+
+  fYAMLConfig.AddConfiguration(fDefaultConfig.c_str(), "default_configuration");
+  fYAMLConfig.AddConfiguration(fUserConfig, std::string(fName));
+  
+  if (!fYAMLConfig.Initialize()) {
+    throw std::runtime_error("Not possible to prepare the YAML configuration."); 
+  }
+
+  ConfigureFromYaml();
   ConnectToAnalysisManager();
   CreateAndConnectIO(name);
 }
@@ -162,7 +185,11 @@ void AliAnalysisTaskDHFeCorr::PostOutput() {
 }
 
 void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
-  //ConfigureFromYaml();
+  if (!fYAMLConfig.Reinitialize()) {
+    throw std::runtime_error("Not possible to reload the YAML configuration."); 
+  }
+
+   ConfigureFromYaml();
   // Additional setup for the task that needs to be done at the time of run time
 
   fEventTree = std::unique_ptr<TTree>(new TTree("event", "event", 99, nullptr));
@@ -231,17 +258,12 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
   PostOutput();
 }
 
-/*
-void AliAnalysisTaskDHFeCorr::ConfigureFromYaml() {
-  TGrid::Connect("alien://");
 
-  fYAMLConfig.AddConfiguration(fDefaultConfig.c_str(), "default_configuration");
-  fYAMLConfig.AddConfiguration(fUserConfig, std::string(fName));
-
-  if (!fYAMLConfig.Initialize())
-    throw std::runtime_error("Not possible to prepare the YAML configuration."); 
-
+void AliAnalysisTaskDHFeCorr::ConfigureFromYaml() {    
   fConfig = cfg::DHFeTaskConfig(fYAMLConfig);
+  std::cout << fConfig << std::endl;
+  
+  /*
   if (fConfig.ProcessElectron()) {
     fMainESelection = sel::ElectronSelection("main_electron", fYAMLConfig);
     std::cout << fMainESelection << std::endl;
@@ -257,10 +279,12 @@ void AliAnalysisTaskDHFeCorr::ConfigureFromYaml() {
   if (fConfig.ProcessDMeson()) {
     fDMesonSelection = sel::DMesonSelection(dhfe::model::kD0, fYAMLConfig);
   }
+  */
+
 }
 
 
-
+/*
 void AliAnalysisTaskDHFeCorr::UserExec(Option_t *) {
   if (!InputEvent()) {
     PostOutput();
@@ -397,3 +421,4 @@ TClonesArray *AliAnalysisTaskDHFeCorr::GetMCInfo() const {
 }
 
 */
+

@@ -2,8 +2,8 @@
 #define ALIPHYSICS_PWGHF_CORRELATIONHF_DHFE_DHFEELECTRONSELECTION_H_
 #include "AliAODTrack.h"
 #include "AliYAMLConfiguration.h"
-#include "DHFe/DHFeCorrElectron.h"
-#include "DHFe/DHFeSelectionBase.h"
+#include "DHFeCorrElectron.h"
+#include "DHFeSelectionBase.h"
 
 namespace dhfe {
 namespace selection {

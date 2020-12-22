@@ -1,8 +1,8 @@
 #ifndef ALIPHYSICS_PWGHF_CORRELATIONHF_DHFE_DHFENONHFE_H_
 #define ALIPHYSICS_PWGHF_CORRELATIONHF_DHFE_DHFENONHFE_H_
 
-#include "DHFe/DHFeCorrElectron.h"
-#include "DHFe/DHFeSelectionBase.h"
+#include "DHFeCorrElectron.h"
+#include "DHFeSelectionBase.h"
 #include "TTree.h"
 
 namespace dhfe {

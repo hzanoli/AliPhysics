@@ -1,4 +1,4 @@
-#include "DHFe/DHFeEvent.h"
+#include "DHFeEvent.h"
 
 #include <sstream>
 #include <stdexcept>

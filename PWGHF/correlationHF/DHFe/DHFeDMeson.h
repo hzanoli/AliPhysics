@@ -9,7 +9,7 @@
 #include "AliAODRecoDecayHF.h"
 #include "AliPID.h"
 #include "AliPIDResponse.h"
-#include "DHFe/DHFeEvent.h"
+#include "DHFeEvent.h"
 #include "TClonesArray.h"
 
 namespace dhfe {

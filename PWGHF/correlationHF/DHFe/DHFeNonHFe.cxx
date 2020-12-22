@@ -1,11 +1,11 @@
-#include "DHFe/DHFeNonHFe.h"
+#include "DHFeNonHFe.h"
 
 #include <string>
 
 #include "AliAODEvent.h"
 #include "AliAODTrack.h"
 #include "AliKFParticle.h"
-#include "DHFe/DHFeUtils.h"
+#include "DHFeUtils.h"
 
 namespace sel = dhfe::selection;
 

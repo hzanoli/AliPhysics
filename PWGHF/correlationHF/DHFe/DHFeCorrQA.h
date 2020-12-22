@@ -6,9 +6,9 @@
 
 #include "AliYAMLConfiguration.h"
 #include "DHFe/DHFeCorrElectron.h"
-#include "DHFe/DHFeDMeson.h"
-#include "DHFe/DHFeNonHFe.h"
-#include "DHFe/DHFeUtils.h"
+#include "DHFeDMeson.h"
+#include "DHFeNonHFe.h"
+#include "DHFeUtils.h"
 
 namespace dhfe {
 namespace qa {

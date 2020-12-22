@@ -2,8 +2,8 @@
 #define ALIPHYSICS_PWGHF_CORRELATIONHF_DHFE_DHFEDSELECTION_H_
 
 #include "AliYAMLConfiguration.h"
-#include "DHFe/DHFeDMeson.h"
-#include "DHFe/DHFeSelectionBase.h"
+#include "DHFeDMeson.h"
+#include "DHFeSelectionBase.h"
 #include "AliRDHFCutsD0toKpi.h"
 
 namespace dhfe {

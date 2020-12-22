@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "DHFe/DHFeUtils.h"
+#include "DHFeUtils.h"
 
 namespace sel = dhfe::selection;
 namespace mdl = dhfe::model;

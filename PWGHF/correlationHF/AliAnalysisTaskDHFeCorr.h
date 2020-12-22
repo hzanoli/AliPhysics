@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "AliAODMCParticle.h"
 #include "AliAODRecoDecayHF.h"
@@ -61,12 +62,15 @@ class DHFeTaskConfig {
   bool fIsMC{false};
   bool fSaveHistograms{false};
   bool fIsEffMode{false};
-  bool fProcessElectron{true};
-  bool fProcessDMeson{true};
-  bool fSaveEvent{true};
+  bool fProcessElectron{false};
+  bool fProcessDMeson{false};
+  bool fSaveEvent{false};
 };
 }  // namespace config
 }  // namespace dhfe
+
+std::ostream &operator<<(std::ostream &os,
+                         dhfe::config::DHFeTaskConfig const &config);
 
 class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
  public:
@@ -129,8 +133,11 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
 
   dhfe::config::DHFeTaskConfig fConfig;  //!
 
-  /*
   PWG::Tools::AliYAMLConfiguration fYAMLConfig; 
+  // Uses the Yaml file configuration to load the parameters for the task.
+  void ConfigureFromYaml();
+
+  /*
   dhfe::selection::ElectronSelection fMainESelection;     //!
   dhfe::selection::ElectronSelection fPartnerESelection;  //!
   dhfe::selection::DMesonSelection fDMesonSelection;      //!
@@ -175,8 +182,8 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
 
   AliAODEvent *GetAODEvent() const;
 
-  // Uses the Yaml file configuration to load the parameters for the task.
-  void ConfigureFromYaml();
+  
+  
 
   std::vector<dhfe::model::Electron> ElectronAnalysis();
 

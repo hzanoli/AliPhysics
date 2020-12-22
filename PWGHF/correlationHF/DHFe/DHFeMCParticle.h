@@ -4,7 +4,7 @@
 #include <functional>
 
 #include "AliAODMCParticle.h"
-#include "DHFe/DHFeEvent.h"
+#include "DHFeEvent.h"
 
 namespace dhfe {
 namespace model {

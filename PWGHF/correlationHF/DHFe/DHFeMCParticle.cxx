@@ -1,6 +1,5 @@
-#include "DHFe/DHFeMCParticle.h"
-
-#include "DHFe/DHFeOrigin.h"
+#include "DHFeMCParticle.h"
+#include "DHFeOrigin.h"
 
 namespace dhfe {
 namespace model {
