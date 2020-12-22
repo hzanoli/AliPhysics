@@ -78,7 +78,7 @@ AliAnalysisTaskDHFeCorr::AliAnalysisTaskDHFeCorr(const char *name,
   TGrid::Connect("alien://");
 
   fYAMLConfig.AddConfiguration(fDefaultConfig.c_str(), "default_configuration");
-  fYAMLConfig.AddConfiguration(fUserConfig, std::string(fName));
+  fYAMLConfig.AddConfiguration(fUserConfig, std::string(name));
   
   if (!fYAMLConfig.Initialize()) {
     throw std::runtime_error("Not possible to prepare the YAML configuration."); 
@@ -309,17 +309,12 @@ void AliAnalysisTaskDHFeCorr::UserExec(Option_t *) {
                         GetMultiSelection());
     fEventTree->Fill();
   }
-
-  /*  
   if (fConfig.ProcessElectron()) ElectronAnalysis();
-  */
 
   PostOutput();
 }
 
 
-
-/*
 
 std::vector<mdl::Electron> AliAnalysisTaskDHFeCorr::SelectFilterBit(
     unsigned int filter_bit) {
@@ -380,7 +375,7 @@ std::vector<mdl::Electron> AliAnalysisTaskDHFeCorr::ElectronAnalysis() {
     // In case of MC, it is necessary to save:
     // - All HFes in the event (even if not selected by the PID cuts)
     // - All the selected tracks (HFe or not).
-    selected_electrons = AddAllHFeToTracks(selected_tracks, selected_electrons);
+    //selected_electrons = AddAllHFeToTracks(selected_tracks, selected_electrons);
   }
 
   FillTreeFromStdContainer(selected_electrons, &fElectron, *fElectronTree);
@@ -409,10 +404,3 @@ std::vector<mdl::Electron> AliAnalysisTaskDHFeCorr::AddAllHFeToTracks(
 
   return all_tracks;
 }
-
-
-
-
-
-*/
-

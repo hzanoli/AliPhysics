@@ -94,7 +94,7 @@ sel::SelectionManager<mdl::Electron> ElectronSelection::CreateTrackCuts() {
 
   std::vector<ECut> track_cuts = {
       pt_range, eta_range, crossed_rows_tpc_min, cls_tpc_dedx_min,
-      its_pixel, dca_xy_max, dca_z_max, its_cls_min};
+      its_pixel, dca_xy_max, dca_z_max}; //its_cls_min
 
   return {fParticleName + "_Track", track_cuts};
 }

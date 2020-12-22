@@ -187,9 +187,6 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   // Returns the PID response task. 
   AliPIDResponse *GetPIDResponse() const;
 
-  /*
-  dhfe::model::DMesonDatabase fDMesonDatabase;  //!
-
   std::vector<dhfe::model::Electron> ElectronAnalysis();
 
   // Given a vector with the tracks that fulfill the track cuts
@@ -206,6 +203,8 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   // this filter bit selection.
   std::vector<dhfe::model::Electron> SelectFilterBit(unsigned int filter_bit);
 
+  /*
+  dhfe::model::DMesonDatabase fDMesonDatabase;  //!
   */
   ClassDef(AliAnalysisTaskDHFeCorr, 6);
   

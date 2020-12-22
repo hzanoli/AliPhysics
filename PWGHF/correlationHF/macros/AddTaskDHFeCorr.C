@@ -2,5 +2,5 @@
 #include <string>
 
 AliAnalysisTaskDHFeCorr *AddTaskDHFeCorr(std::string name, std::string config_file, Int_t trigger = AliVEvent::kINT7) {
-    return new AliAnalysisTaskDHFeCorr(name.c_str());
+    return new AliAnalysisTaskDHFeCorr(name.c_str(), trigger, config_file.c_str());
 }
