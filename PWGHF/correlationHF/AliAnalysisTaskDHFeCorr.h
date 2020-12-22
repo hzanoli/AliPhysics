@@ -137,7 +137,6 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   // Uses the Yaml file configuration to load the parameters for the task.
   void ConfigureFromYaml();
 
-  /*
   dhfe::selection::ElectronSelection fMainESelection;     //!
   dhfe::selection::ElectronSelection fPartnerESelection;  //!
   dhfe::selection::DMesonSelection fDMesonSelection;      //!
@@ -152,9 +151,8 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   // D meson QA histogram configuration
   dhfe::qa::DMesonQAConfig fDMesonQAConfig;  //!
 
+  /*
   dhfe::model::DMesonDatabase fDMesonDatabase;  //!
-
-
 
   // Objects to be saved in the tree
   dhfe::model::EventId fEventId;    //!
@@ -163,7 +161,6 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   dhfe::model::DMeson fDmeson;      //!
   dhfe::model::MCParticle fMCE;     //!
   dhfe::model::MCParticle fMCD;     //!
-
   
 
   // Main electron QA after filter bit, track and PID
@@ -181,9 +178,6 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   dhfe::qa::DMesonQAHist fDMesonQAPreSelection;  //!
 
   AliAODEvent *GetAODEvent() const;
-
-  
-  
 
   std::vector<dhfe::model::Electron> ElectronAnalysis();
 

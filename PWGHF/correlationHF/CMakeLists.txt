@@ -70,7 +70,17 @@ set(SRCS
 # Tasks that should only be compiled in ROOT 6
 if(ROOT_VERSION_MAJOR EQUAL 6)
     set(SRCS ${SRCS}
-	AliAnalysisTaskDHFeCorr.cxx
+    AliAnalysisTaskDHFeCorr.cxx
+    DHFe/DHFeCorrElectron.cxx
+    DHFe/DHFeCorrQA.cxx
+    DHFe/DHFeDMeson.cxx
+    DHFe/DHFeDSelection.cxx
+    DHFe/DHFeElectronSelection.cxx
+    DHFe/DHFeEvent.cxx
+    DHFe/DHFeMCParticle.cxx
+    DHFe/DHFeNonHFe.cxx
+    DHFe/DHFeOrigin.cxx
+    DHFe/DHFeUtils.cxx
 	)						
 endif(ROOT_VERSION_MAJOR EQUAL 6)
 

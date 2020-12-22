@@ -6,7 +6,7 @@
 #include "AliPID.h"
 #include "AliPIDResponse.h"
 #include "AliVertexingHFUtils.h"
-#include "DHFe/DHFeOrigin.h"
+#include "DHFeOrigin.h"
 #include "TClonesArray.h"
 
 namespace sel = dhfe::selection;

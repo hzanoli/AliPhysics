@@ -10,16 +10,13 @@
 #include "TGrid.h"
 
 namespace cfg = dhfe::config;
-
-/*
-namespace mdl = dhfe::model;
 namespace qa = dhfe::qa;
+namespace mdl = dhfe::model;
 namespace nhfe = dhfe::non_hfe;
 namespace org = dhfe::origin;
 namespace yaml = dhfe::yaml;
 namespace sel = dhfe::selection;
 
-*/
 dhfe::config::DHFeTaskConfig::DHFeTaskConfig(
     const PWG::Tools::AliYAMLConfiguration &config) {
   const std::string top_level = "task";
@@ -263,7 +260,6 @@ void AliAnalysisTaskDHFeCorr::ConfigureFromYaml() {
   fConfig = cfg::DHFeTaskConfig(fYAMLConfig);
   std::cout << fConfig << std::endl;
   
-  /*
   if (fConfig.ProcessElectron()) {
     fMainESelection = sel::ElectronSelection("main_electron", fYAMLConfig);
     std::cout << fMainESelection << std::endl;
@@ -279,8 +275,6 @@ void AliAnalysisTaskDHFeCorr::ConfigureFromYaml() {
   if (fConfig.ProcessDMeson()) {
     fDMesonSelection = sel::DMesonSelection(dhfe::model::kD0, fYAMLConfig);
   }
-  */
-
 }
 
 

@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "AliYAMLConfiguration.h"
-#include "DHFe/DHFeCorrElectron.h"
+#include "DHFeCorrElectron.h"
 #include "DHFeDMeson.h"
 #include "DHFeNonHFe.h"
 #include "DHFeUtils.h"
