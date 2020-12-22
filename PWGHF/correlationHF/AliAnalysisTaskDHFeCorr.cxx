@@ -5,12 +5,11 @@
 
 #include "AliAODInputHandler.h"
 #include "AliAnalysisManager.h"
-//#include "DHFe/DHFeConfig.h"
-//#include "DHFe/DHFeNonHFe.h"
-//#include "DHFe/DHFeOrigin.h"
 #include "TChain.h"
 #include "TFile.h"
 #include "TGrid.h"
+
+namespace cfg = dhfe::config;
 
 /*
 namespace mdl = dhfe::model;
@@ -18,9 +17,9 @@ namespace qa = dhfe::qa;
 namespace nhfe = dhfe::non_hfe;
 namespace org = dhfe::origin;
 namespace yaml = dhfe::yaml;
-namespace cfg = dhfe::config;
 namespace sel = dhfe::selection;
 
+*/
 
 dhfe::config::DHFeTaskConfig::DHFeTaskConfig(
     const PWG::Tools::AliYAMLConfiguration &config) {
@@ -44,7 +43,7 @@ dhfe::config::DHFeTaskConfig::DHFeTaskConfig(
   config.GetProperty(std::vector<std::string>({top_level, "save_event"}),
                      fSaveEvent, true);
 }
-*/
+
 
 ClassImp(AliAnalysisTaskDHFeCorr);
 

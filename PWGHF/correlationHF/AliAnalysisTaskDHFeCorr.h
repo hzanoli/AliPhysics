@@ -14,7 +14,7 @@
 #include "AliRDHFCuts.h"
 #include "AliYAMLConfiguration.h"
 
-/*
+
 #include "DHFeCorrElectron.h"
 #include "DHFeCorrQA.h"
 #include "DHFeDMeson.h"
@@ -22,7 +22,7 @@
 #include "DHFeElectronSelection.h"
 #include "DHFeMCParticle.h"
 #include "DHFeNonHFe.h"
-*/
+
 
 #include "TClonesArray.h"
 #include "TH1F.h"
@@ -30,10 +30,21 @@
 #include "TH3F.h"
 #include "TTree.h"
 
-/*
+
 namespace dhfe {
 namespace config {
-class DHFeTaskConfig {
+/* Handles the configuration of the main task. It is constructed using the YAML
+configuration file that should have the following format:
+
+task:
+  mc_mode: false # Sets the task to work with simulated data
+  qa_histograms: true # Keeps the qa histograms
+  only_efficiency: false # Ignore background for D mesons to save space (MC only)
+  process_electron: true # whether to perform the electron analysis
+  process_dmeson: true # whether to perform the dmeson analysis
+  save_event: true # whether to save the event information
+*/    
+class DHFeTaskConfig {   
  public:
   DHFeTaskConfig() = default;
 
@@ -57,7 +68,6 @@ class DHFeTaskConfig {
 }  // namespace config
 }  // namespace dhfe
 
-*/
 class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
  public:
   // D-meson species
@@ -75,8 +85,7 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
       const char *config =
           "$ALICE_PHYSICS/PWGHF/correlationHF/macros/default_config_d_hfe.yaml",
       const char *default_config =
-          "$ALICE_PHYSICS/PWGHF/correlationHF/macros/"
-          "default_config_d_hfe.yaml");
+          "$ALICE_PHYSICS/PWGHF/correlationHF/macros/default_config_d_hfe.yaml");
 
   // Connects to the AliAnalysisManager and adds the task to it
   void ConnectToAnalysisManager();
@@ -118,8 +127,9 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   // Selection classes for the physics analysis
   AliEventCuts fEventCuts;
 
-    /*
   dhfe::config::DHFeTaskConfig fConfig;  //!
+
+  /*
   PWG::Tools::AliYAMLConfiguration fYAMLConfig; 
   dhfe::selection::ElectronSelection fMainESelection;     //!
   dhfe::selection::ElectronSelection fPartnerESelection;  //!
