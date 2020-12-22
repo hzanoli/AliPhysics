@@ -86,20 +86,37 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
 
   ~AliAnalysisTaskDHFeCorr();
 
+  void UserCreateOutputObjects(); 
   /*
-  void UserCreateOutputObjects();
-
   void UserExec(Option_t *option);
 
   //bool IsMC() const { return fConfig.IsMC(); }
     */
-   
+
  private:
    void DefineIO();
 
   // Configuration of the task
   std::string fDefaultConfig{"$ALICE_PHYSICS/PWGHF/correlationHF/macros/default_config_d_hfe.yaml"}; 
   std::string fUserConfig{"$ALICE_PHYSICS/PWGHF/correlationHF/macros/default_config_d_hfe.yaml"};
+
+  // Output variables that will be saved to the ROOT file
+  TList fOptEvent; //!
+  TList fOptElectron; //!
+  TList fOptDMeson; //!
+
+  std::unique_ptr<TTree> fEventTree; //!
+  std::unique_ptr<TTree> fElectronTree; //!
+  std::unique_ptr<TTree> fNHFePairTree; //!
+  std::unique_ptr<TTree> fDmesonTree; //!
+  std::unique_ptr<TTree> fElectronTreeMC; //!
+  std::unique_ptr<TTree> fDmesonTreeMC; //!
+
+  // Posts the output of the task to the output containers.
+  void PostOutput();
+
+  // Selection classes for the physics analysis
+  AliEventCuts fEventCuts;
 
     /*
   dhfe::config::DHFeTaskConfig fConfig;  //!
@@ -120,17 +137,7 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
 
   dhfe::model::DMesonDatabase fDMesonDatabase;  //!
 
-  // Output variables that will be saved to the ROOT file
-  TList fOptEvent;
-  TList fOptElectron;
-  TList fOptDMeson;
 
-  std::unique_ptr<TTree> fEventTree; //!
-  std::unique_ptr<TTree> fElectronTree; //!
-  std::unique_ptr<TTree> fNHFePairTree; //!
-  std::unique_ptr<TTree> fDmesonTree; //!
-  std::unique_ptr<TTree> fElectronTreeMC; //!
-  std::unique_ptr<TTree> fDmesonTreeMC; //!
 
   // Objects to be saved in the tree
   dhfe::model::EventId fEventId;    //!
@@ -140,8 +147,7 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   dhfe::model::MCParticle fMCE;     //!
   dhfe::model::MCParticle fMCD;     //!
 
-  // Selection classes for the physics analysis
-  AliEventCuts fEventCuts;
+  
 
   // Main electron QA after filter bit, track and PID
   dhfe::qa::ElectronQAHist fEQAFilterBit;  //!
@@ -158,9 +164,6 @@ class AliAnalysisTaskDHFeCorr : public AliAnalysisTaskSE {
   dhfe::qa::DMesonQAHist fDMesonQAPreSelection;  //!
 
   AliAODEvent *GetAODEvent() const;
-
-  // Posts the output of the task to the output containers.
-  void PostOutput();
 
   // Uses the Yaml file configuration to load the parameters for the task.
   void ConfigureFromYaml();

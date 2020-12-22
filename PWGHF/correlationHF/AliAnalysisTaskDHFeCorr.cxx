@@ -151,36 +151,19 @@ void AliAnalysisTaskDHFeCorr::CreateAndConnectIO(const std::string &name) {
   this->ConnectOutput(8, dmeson_mc_container);
 }
 
-/*
-void AliAnalysisTaskDHFeCorr::ConfigureFromYaml() {
-  TGrid::Connect("alien://");
-
-  fYAMLConfig.AddConfiguration(fDefaultConfig.c_str(), "default_configuration");
-  fYAMLConfig.AddConfiguration(fUserConfig, std::string(fName));
-
-  if (!fYAMLConfig.Initialize())
-    throw std::runtime_error("Not possible to prepare the YAML configuration."); 
-
-  fConfig = cfg::DHFeTaskConfig(fYAMLConfig);
-  if (fConfig.ProcessElectron()) {
-    fMainESelection = sel::ElectronSelection("main_electron", fYAMLConfig);
-    std::cout << fMainESelection << std::endl;
-
-    fPartnerESelection =
-        sel::ElectronSelection("partner_electron", fYAMLConfig);
-    std::cout << fPartnerESelection << std::endl;
-
-    fMainEQAConfig = qa::ElectronQAConfig("main_electron", fYAMLConfig);
-    fPartnerEQAConfig = qa::ElectronQAConfig("partner_electron", fYAMLConfig);
-  }
-
-  if (fConfig.ProcessDMeson()) {
-    fDMesonSelection = sel::DMesonSelection(dhfe::model::kD0, fYAMLConfig);
-  }
+void AliAnalysisTaskDHFeCorr::PostOutput() {
+  PostData(1, fElectronTree.get());
+  PostData(2, fDmesonTree.get());
+  PostData(3, fEventTree.get());
+  PostData(4, &fOptEvent);
+  PostData(5, &fOptElectron);
+  PostData(6, &fOptDMeson);
+  PostData(7, fElectronTreeMC.get());
+  PostData(8, fDmesonTreeMC.get());
 }
 
 void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
-  ConfigureFromYaml();
+  //ConfigureFromYaml();
   // Additional setup for the task that needs to be done at the time of run time
 
   //fEventTree = std::unique_ptr<TTree>(new TTree("event", "event", 99, nullptr));
@@ -190,17 +173,19 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
   //fElectronTreeMC = std::unique_ptr<TTree>(new TTree("electron_mc", "electron_mc", 99, nullptr));
   //fDmesonTreeMC = std::unique_ptr<TTree>(new TTree("dmeson_mc", "dmeson_mc", 99, nullptr));
 
+  /*   
   if (fConfig.ProcessDMeson()) {
     fDMesonSelection.RectangularPreSelection()->GetPidHF()->SetPidResponse(
         fInputHandler->GetPIDResponse());
   }
+  */
 
- std::cout << "test 1" <<std::endl;
   // Remove the trigger mask from the automatic cuts
   fEventCuts.OverrideAutomaticTriggerSelection(AliVEvent::kAny);
 
   fOptEvent.SetOwner(kTRUE);
 
+  /*  
   fEvent.AddToTree(*fEventTree, dhfe::configuration::kBasketSize);
   fElectron.AddToTree(*fElectronTree, dhfe::configuration::kBasketSize, IsMC());
   fDmeson.AddToTree(*fDmesonTree, dhfe::configuration::kBasketSize, IsMC());
@@ -209,6 +194,7 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
     fMCD.AddToTree(*fDmesonTreeMC, dhfe::configuration::kBasketSize);
     fMCE.AddToTree(*fElectronTreeMC, dhfe::configuration::kBasketSize);
   }
+  
 
   // Event QA
   fEventCuts.AddQAplotsToList(&fOptEvent);
@@ -241,9 +227,40 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
 
   fDMesonQAPreSelection = qa::DMesonQAHist(fDMesonQAConfig, "PreSelection");
   fDMesonQAPreSelection.AddToOutput(fOptDMeson);
+  */
 
   PostOutput();
 }
+
+/*
+void AliAnalysisTaskDHFeCorr::ConfigureFromYaml() {
+  TGrid::Connect("alien://");
+
+  fYAMLConfig.AddConfiguration(fDefaultConfig.c_str(), "default_configuration");
+  fYAMLConfig.AddConfiguration(fUserConfig, std::string(fName));
+
+  if (!fYAMLConfig.Initialize())
+    throw std::runtime_error("Not possible to prepare the YAML configuration."); 
+
+  fConfig = cfg::DHFeTaskConfig(fYAMLConfig);
+  if (fConfig.ProcessElectron()) {
+    fMainESelection = sel::ElectronSelection("main_electron", fYAMLConfig);
+    std::cout << fMainESelection << std::endl;
+
+    fPartnerESelection =
+        sel::ElectronSelection("partner_electron", fYAMLConfig);
+    std::cout << fPartnerESelection << std::endl;
+
+    fMainEQAConfig = qa::ElectronQAConfig("main_electron", fYAMLConfig);
+    fPartnerEQAConfig = qa::ElectronQAConfig("partner_electron", fYAMLConfig);
+  }
+
+  if (fConfig.ProcessDMeson()) {
+    fDMesonSelection = sel::DMesonSelection(dhfe::model::kD0, fYAMLConfig);
+  }
+}
+
+
 
 void AliAnalysisTaskDHFeCorr::UserExec(Option_t *) {
   if (!InputEvent()) {
@@ -275,16 +292,7 @@ AliAODEvent *AliAnalysisTaskDHFeCorr::GetAODEvent() const {
   return dynamic_cast<AliAODEvent *>(InputEvent());
 };
 
-void AliAnalysisTaskDHFeCorr::PostOutput() {
-  PostData(1, fElectronTree.get());
-  PostData(2, fDmesonTree.get());
-  PostData(3, fEventTree.get());
-  PostData(4, &fOptEvent);
-  PostData(5, &fOptElectron);
-  PostData(6, &fOptDMeson);
-  PostData(7, fElectronTreeMC.get());
-  PostData(8, fDmesonTreeMC.get());
-}
+
 
 AliMultSelection *AliAnalysisTaskDHFeCorr::GetMultiSelection() const {
   return dynamic_cast<AliMultSelection *>(
