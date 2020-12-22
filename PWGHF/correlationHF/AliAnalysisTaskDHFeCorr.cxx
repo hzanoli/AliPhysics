@@ -166,12 +166,12 @@ void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
   //ConfigureFromYaml();
   // Additional setup for the task that needs to be done at the time of run time
 
-  //fEventTree = std::unique_ptr<TTree>(new TTree("event", "event", 99, nullptr));
-  //fElectronTree = std::unique_ptr<TTree> (new TTree("electron", "electron", 99, nullptr)); 
-  //fNHFePairTree = std::unique_ptr<TTree> (new TTree("nhfe_pair", "nhfe_pair", 99, nullptr));
-  //fDmesonTree = std::unique_ptr<TTree> (new TTree("dmeson", "dmeson", 99, nullptr));
-  //fElectronTreeMC = std::unique_ptr<TTree>(new TTree("electron_mc", "electron_mc", 99, nullptr));
-  //fDmesonTreeMC = std::unique_ptr<TTree>(new TTree("dmeson_mc", "dmeson_mc", 99, nullptr));
+  fEventTree = std::unique_ptr<TTree>(new TTree("event", "event", 99, nullptr));
+  fElectronTree = std::unique_ptr<TTree> (new TTree("electron", "electron", 99, nullptr)); 
+  fNHFePairTree = std::unique_ptr<TTree> (new TTree("nhfe_pair", "nhfe_pair", 99, nullptr));
+  fDmesonTree = std::unique_ptr<TTree> (new TTree("dmeson", "dmeson", 99, nullptr));
+  fElectronTreeMC = std::unique_ptr<TTree>(new TTree("electron_mc", "electron_mc", 99, nullptr));
+  fDmesonTreeMC = std::unique_ptr<TTree>(new TTree("dmeson_mc", "dmeson_mc", 99, nullptr));
 
   /*   
   if (fConfig.ProcessDMeson()) {
