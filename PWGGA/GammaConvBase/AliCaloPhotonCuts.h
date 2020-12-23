@@ -327,6 +327,7 @@ class AliCaloPhotonCuts : public AliAnalysisCuts {
     Float_t     FunctionNL_OfficialTB_100MeV_Data_Sys2(Float_t e);
     Float_t     FunctionNL_OfficialTB_100MeV_Data_Sys3(Float_t e);
     Float_t     FunctionNL_OfficialTB_100MeV_Data_V2(Float_t e);
+    Float_t     FunctionNL_OfficialTB_100MeV_Data_V2_NoScale(Float_t e);
     Float_t     FunctionNL_OfficialTB_150MeV_Data(Float_t e);
     Float_t     FunctionNL_OfficialTB_300MeV_Data(Float_t e);
     Float_t     FunctionNL_OfficialTB_50MeV_MC(Float_t e);
@@ -336,6 +337,7 @@ class AliCaloPhotonCuts : public AliAnalysisCuts {
     Float_t     FunctionNL_OfficialTB_300MeV_MC(Float_t e);
     Float_t     FunctionNL_kSDMv5(Float_t e);
     Float_t     FunctionNL_kSDMv6(Float_t e);
+    Float_t     FunctionNL_kTestBeamCorrected(Float_t e);
     Float_t     FunctionNL_kTestBeamv2(Float_t e);
     Float_t     FunctionNL_kTestBeamv3(Float_t e);
     Float_t     FunctionNL_kTestBeamv4(Float_t e);
@@ -446,6 +448,7 @@ class AliCaloPhotonCuts : public AliAnalysisCuts {
 
     Bool_t      IsExoticCluster ( AliVCluster *cluster, AliVEvent *event, Float_t& energyStar );
     Float_t     GetECross ( Int_t absID, AliVCaloCells* cells );
+    Bool_t      IsCellNextToCluster( Int_t absID, Double_t Ethresh, AliVCaloCells* cells );
     Bool_t      AcceptCellByBadChannelMap (Int_t absID );
     Bool_t      IsAbsIDsFromTCard(Int_t absId1, Int_t absId2) const;
     void        SetExoticsMinCellEnergyCut(Double_t minE)       { fExoticMinEnergyCell = minE; return;}
@@ -559,7 +562,7 @@ class AliCaloPhotonCuts : public AliAnalysisCuts {
     Bool_t    fUseMinEnergy;                            // flag for switching on minimum energy cut
     Int_t     fMinNCells;                               // minimum number of cells
     Int_t     fMaxNCells;                               // maximum number of cells
-    Int_t     fMinENCell;                               // minimum energy for number of cells cut
+    Double_t  fMinENCell;                               // minimum energy for number of cells cut
     Int_t     fUseNCells;                               // flag for switching on minimum N Cells cut
     Double_t  fMaxM02;                                  // maximum M02
     Double_t  fMinM02;                                  // minimum M02
@@ -715,6 +718,7 @@ class AliCaloPhotonCuts : public AliAnalysisCuts {
     TH2F*     fHistTrueNoElectronPositronClusterMatch;  // True No Electron/Positron P vs cluster E in case of matching with a cluster
     TH2F*     fHistElectronClusterMatchTruePID;         // MC true histogram for purity studies of selected electrons
     TH2F*     fHistTrueElectronPositronClusterMatchEoverP;  // True Electron/Positron E/P vs PT of cluster in case of matching of Electron with cluster
+    TH2F*     fHistElectronClusterNCellsVsE;            // Electron/Positron cluster number of cells vs. cluster energy
 
     // histogram for conv candidate rejection
     TH2F*     fHistInvMassDiCluster;                    // histogram for monitoring di-cluster mass
@@ -725,7 +729,7 @@ class AliCaloPhotonCuts : public AliAnalysisCuts {
 
   private:
 
-    ClassDef(AliCaloPhotonCuts,116)
+    ClassDef(AliCaloPhotonCuts,119)
 };
 
 #endif

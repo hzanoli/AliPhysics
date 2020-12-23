@@ -42,6 +42,7 @@ class AliAnalysisDecorrTask : public AliAnalysisTaskSE
         void                    SetCentBin(Int_t nbins, Double_t *bins) { fCentAxis->Set(nbins,bins); }
         void                    SetCentLim(Double_t min, Double_t max) { fCentMin = min; fCentMax = max; } //Not used yet
         void                    SetPtBins(Int_t nbins, Double_t *bins) { fPtAxis->Set(nbins, bins); }
+        void                    SetRequireHighPtTracks(Bool_t req, Int_t Ntracks, Double_t ptcut) { fRequireHighPtTracks = req; fNHighPtTracks = Ntracks; fHighPtCut = ptcut; }
         AliEventCuts            fEventCuts;
         //track selection
         void                    SetDCAzMax(Double_t dcaz) {  fCutDCAzMax = dcaz; }
@@ -64,6 +65,7 @@ class AliAnalysisDecorrTask : public AliAnalysisTaskSE
         void                    SetFillWeights(Bool_t fill) { fFillWeights = fill; }    //Fill histograms for weights calculations
         Bool_t                  GetUseWeights3D() { return fUseWeights3D; }             //Check if 3D weights are used for macro path to weights
         Bool_t                  GetUseOwnWeights() { return fUseOwnWeights; }
+        void                    SetCurrSystFlag(int sys) { fCurrSystFlag = sys; }
         //void                    HasGap(Bool_t hasGap) { bHasGap = hasGap; }  //outdated, derived from CorrTask
         void                    SetRequireTwoPart(Bool_t req) { fRequireTwoPart = req; }
     
@@ -84,7 +86,7 @@ class AliAnalysisDecorrTask : public AliAnalysisTaskSE
         Float_t                 GetNCharged();
         Bool_t                  LoadWeights();
         double                  GetWeights(double dPhi, double dEta, double dVz);
-        Bool_t                  IsEventSelected();
+        Bool_t                  IsEventSelected(TH1D* h = nullptr);
         Bool_t                  IsEventRejectedAddPileUp(const int fPileupCut) const;
         Bool_t                  IsTrackSelected(const AliAODTrack* track) const;
         Int_t                   GetSamplingIndex() const;
@@ -104,9 +106,12 @@ class AliAnalysisDecorrTask : public AliAnalysisTaskSE
         TH1I*                   hTPCclsA;                   //!
         TH1D*                   hTPCchi2A;                  //!    
         TH3D*                   hDCAA;                      //!    
-        TH3D*                   hPtPhiEta;                  //!
+        TH3D*                   hPtPhiEtaB;                 //!
+        TH3D*                   hPtPhiEtaA;                 //!
         TH1D*                   hNumTracksB;                //!
         TH1D*                   hNumTracksA;                //!
+        TH1D*                   hNumHighPtTracksA;          //!
+        TH1D*                   fhEventSel;                 //!
 
         void                    FillWeights();
         void                    FillAfterWeights();         
@@ -238,6 +243,9 @@ class AliAnalysisDecorrTask : public AliAnalysisTaskSE
         Double_t                fCentMin;
         Double_t                fCentMax;
         Double_t                fPVtxCutZ;
+        Bool_t                  fRequireHighPtTracks;
+        Int_t                   fNHighPtTracks;
+        Double_t                fHighPtCut;
         //cuts & selection: tracks
         UInt_t                  fCutChargedTrackFilterBit; // (-) tracks filter bit
         UShort_t                fCutNumTPCclsMin;  // (-) Minimal number of TPC clusters used for track reconstruction
@@ -253,6 +261,7 @@ class AliAnalysisDecorrTask : public AliAnalysisTaskSE
         Int_t                   fPhiBinNum;
         Bool_t                  fUseWeights3D;
         Bool_t                  fUseOwnWeights;
+        int                     fCurrSystFlag;
         Bool_t                  fFillWeights;
         Int_t                   fNumSamples;        //Number of samples for bootstrapping
         //Bool_t                  bHasGap; //Also gotten from CorrTask

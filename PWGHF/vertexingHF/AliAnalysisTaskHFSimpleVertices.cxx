@@ -76,6 +76,7 @@ AliAnalysisTaskHFSimpleVertices::AliAnalysisTaskHFSimpleVertices() :
   fHistImpParD0Dau0{nullptr},
   fHistImpParD0Dau1{nullptr},
   fHistd0Timesd0{nullptr},
+  fHistCosPointD0{nullptr},
   fHistDecLenD0{nullptr},
   fHistDecLenXYD0{nullptr},
   fHistImpParErrD0Dau{nullptr},
@@ -109,6 +110,10 @@ AliAnalysisTaskHFSimpleVertices::AliAnalysisTaskHFSimpleVertices() :
   fHistoSumSqImpParDplusDau{nullptr},
   fHistCovMatPrimVXX3Prong{nullptr},
   fHistCovMatSecVXX3Prong{nullptr},
+  fHistInvMassDs{nullptr},
+  fHistPtDs{nullptr},
+  fHistDecLenDs{nullptr},
+  fHistCosPointDs{nullptr}, 
   fHistInvMassLc{nullptr},
   fHistPtLc{nullptr},
   fHistPtLcDau0{nullptr},
@@ -141,9 +146,11 @@ AliAnalysisTaskHFSimpleVertices::AliAnalysisTaskHFSimpleVertices() :
   fNPtBins(25),
   fMinPtDzero(0.),
   fMaxPtDzero(9999.),
+  fCandidateCutLevel(1),
   fSelectD0(1),
   fSelectD0bar(1),
   fMinPt3Prong(0.),
+  fNPtBinsLc(10),
   fSelectLcpKpi(1)
 {
   //
@@ -189,6 +196,7 @@ AliAnalysisTaskHFSimpleVertices::~AliAnalysisTaskHFSimpleVertices(){
     delete fHistImpParD0Dau0;
     delete fHistImpParD0Dau1;
     delete fHistd0Timesd0;
+    delete fHistCosPointD0;
     delete fHistDecLenD0;
     delete fHistDecLenXYD0;
     delete fHistImpParErrD0Dau;
@@ -222,6 +230,10 @@ AliAnalysisTaskHFSimpleVertices::~AliAnalysisTaskHFSimpleVertices(){
     delete fHistoSumSqImpParDplusDau;
     delete fHistCovMatPrimVXX3Prong;
     delete fHistCovMatSecVXX3Prong;
+    delete fHistInvMassDs;
+    delete fHistPtDs;
+    delete fHistDecLenDs;
+    delete fHistCosPointDs;
     delete fHistInvMassLc;
     delete fHistPtLc;
     delete fHistPtLcDau0;
@@ -264,6 +276,27 @@ void AliAnalysisTaskHFSimpleVertices::InitDefault(){
   fTrackCuts3pr->SetRequireITSRefit(kTRUE);
   fTrackCuts3pr->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                           AliESDtrackCuts::kAny);
+
+  fDzeroSkimCuts[0]=0.;      // pt
+  fDzeroSkimCuts[1]=0.;      // min mass
+  fDzeroSkimCuts[2]=3.;      // max mass
+  fDzeroSkimCuts[3]=-1.1;    // cos pointing angle
+  fDzeroSkimCuts[4]=999999.; // d0xd0
+  fDplusSkimCuts[0]=0.;         // pt
+  fDplusSkimCuts[1]=0.;         // min mass
+  fDplusSkimCuts[2]=3.;         // max mass
+  fDplusSkimCuts[3]=-1.1;       // cos pointing angle
+  fDplusSkimCuts[4]=0.;         // dec len
+  fDsSkimCuts[0]=0.;         // pt
+  fDsSkimCuts[1]=0.;         // min mass
+  fDsSkimCuts[2]=3.;         // max mass
+  fDsSkimCuts[3]=-1.1;       // cos pointing angle
+  fDsSkimCuts[4]=0.;         // dec len
+  fLcSkimCuts[0]=0.;         // pt
+  fLcSkimCuts[1]=0.;         // min mass
+  fLcSkimCuts[2]=3.;         // max mass
+  fLcSkimCuts[3]=-1.1;       // cos pointing angle
+  fLcSkimCuts[4]=0.;         // dec len
 
   fNPtBins=25;
   Double_t defaultPtBins[26] = {0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 9.0, 10.0, 12.0, 16.0, 20.0, 24.0, 36.0, 50.0, 100.0};
@@ -375,6 +408,57 @@ void AliAnalysisTaskHFSimpleVertices::InitFromJson(TString filename){
     Double_t ptMinCand3 = GetJsonFloat(filename.Data(), "cut3ProngPtCandMin");
     printf("Min pt 3-prong cand = %f\n", ptMinCand3);
     if( ptMinCand3>=0.) fMinPt3Prong=ptMinCand3;
+
+    // Selections used in the skimming
+    printf("------- CANDIDATE SELECTIONS FOR SKIMMING -------\n");
+    Double_t minPtDzero = GetJsonFloat(filename.Data(), "mPtD0Min");
+    Double_t minMassDzero = GetJsonFloat(filename.Data(), "mInvMassD0Min");
+    Double_t maxMassDzero = GetJsonFloat(filename.Data(), "mInvMassD0Max");
+    Double_t minCosPointDzero = GetJsonFloat(filename.Data(), "mCPAD0Min");
+    Double_t maxd0xd0Dzero = GetJsonFloat(filename.Data(), "mImpParProductD0Max");
+    printf("Dzero cuts: pt > %f  ;  %f < mass < %f  ;  cospoint > %f  ; d0xd0  < %f\n",minPtDzero,minMassDzero,maxMassDzero,minCosPointDzero,maxd0xd0Dzero);
+    fDzeroSkimCuts[0]=minPtDzero;
+    fDzeroSkimCuts[1]=minMassDzero;
+    fDzeroSkimCuts[2]=maxMassDzero;
+    fDzeroSkimCuts[3]=minCosPointDzero;
+    fDzeroSkimCuts[4]=maxd0xd0Dzero;
+    
+    Double_t minPtDplus = GetJsonFloat(filename.Data(), "mPtDPlusMin");
+    Double_t minMassDplus = GetJsonFloat(filename.Data(), "mInvMassDPlusMin");
+    Double_t maxMassDplus = GetJsonFloat(filename.Data(), "mInvMassDPlusMax");
+    Double_t minCosPointDplus = GetJsonFloat(filename.Data(), "mCPADPlusMin");
+    Double_t minDecLenDplus = GetJsonFloat(filename.Data(), "mDecLenDPlusMin");
+    printf("Dplus cuts: pt > %f  ;  %f < mass < %f  ;  cospoint > %f  ; declen > %f\n",minPtDplus,minMassDplus,maxMassDplus,minCosPointDplus,minDecLenDplus);
+    fDplusSkimCuts[0]=minPtDplus;
+    fDplusSkimCuts[1]=minMassDplus;
+    fDplusSkimCuts[2]=maxMassDplus;
+    fDplusSkimCuts[3]=minCosPointDplus;
+    fDplusSkimCuts[4]=minDecLenDplus;
+
+    Double_t minPtDs = GetJsonFloat(filename.Data(), "mPtDsMin");
+    Double_t minMassDs = GetJsonFloat(filename.Data(), "mInvMassDsMin");
+    Double_t maxMassDs = GetJsonFloat(filename.Data(), "mInvMassDsMax");
+    Double_t minCosPointDs = GetJsonFloat(filename.Data(), "mCPADsMin");
+    Double_t minDecLenDs = GetJsonFloat(filename.Data(), "mDecLenDsMin");
+    printf("Ds   cuts: pt > %f  ;  %f < mass < %f  ;  cospoint > %f  ; declen > %f\n",minPtDs,minMassDs,maxMassDs,minCosPointDs,minDecLenDs);
+    fDsSkimCuts[0]=minPtDs;
+    fDsSkimCuts[1]=minMassDs;
+    fDsSkimCuts[2]=maxMassDs;
+    fDsSkimCuts[3]=minCosPointDs;
+    fDsSkimCuts[4]=minDecLenDs;
+
+    Double_t minPtLc = GetJsonFloat(filename.Data(), "mPtLcMin");
+    Double_t minMassLc = GetJsonFloat(filename.Data(), "mInvMassLcMin");
+    Double_t maxMassLc = GetJsonFloat(filename.Data(), "mInvMassLcMax");
+    Double_t minCosPointLc = GetJsonFloat(filename.Data(), "mCPALcMin");
+    Double_t minDecLenLc = GetJsonFloat(filename.Data(), "mDecLenLcMin");
+    printf("Lc   cuts: pt > %f  ;  %f < mass < %f  ;  cospoint > %f  ; declen > %f\n",minPtLc,minMassLc,maxMassLc,minCosPointLc,minDecLenLc);
+    fLcSkimCuts[0]=minPtLc;
+    fLcSkimCuts[1]=minMassLc;
+    fLcSkimCuts[2]=maxMassLc;
+    fLcSkimCuts[3]=minCosPointLc;
+    fLcSkimCuts[4]=minDecLenLc;
+
     printf("---------------------------------------------\n");
   }else{
     AliError(Form("Json configuration file %s not found\n",filename.Data()));
@@ -454,6 +538,7 @@ void AliAnalysisTaskHFSimpleVertices::UserCreateOutputObjects() {
   fHistImpParD0Dau0 = new TH1F("hImpParD0Dau0", " D^{0} prong0 ; d_{0}^{xy} (cm)", 100, -1.0, 1.0);
   fHistImpParD0Dau1 = new TH1F("hImpParD0Dau1", " D^{0} prong1 ; d_{0}^{xy} (cm)", 100, -1.0, 1.0);
   fHistd0Timesd0 = new TH1F("hd0Timesd0", " d_{0}^{xy}x d_{0}^{xy} (cm^{2})", 500, -1.0, 1.0);
+  fHistCosPointD0 = new TH1F("hCosPointD0", " ; cos(#theta_{P})", 110, -1.1, 1.1);      
   fHistDecLenD0 = new TH1F("hDecLenD0", " ; Decay Length (cm)", 200, 0., 2.0);
   fHistDecLenXYD0 = new TH1F("hDecLenXYD0", " ; Decay Length xy (cm)", 200, 0., 2.0);
   fHistImpParErrD0Dau = new TH1F("hImpParErrD0Dau", " D^{0} prongs ; #sigma(d_{0}^{xy}) (cm)", 100, -1.0, 1.0);
@@ -462,12 +547,13 @@ void AliAnalysisTaskHFSimpleVertices::UserCreateOutputObjects() {
   fHistCovMatPrimVXX2Prong = new TH1F("hCovMatPrimVXX2Prong", " Primary Vertex ; XX element of covariant matrix (cm^2)", 100, 0., 1.0e-4);
   fHistCovMatSecVXX2Prong = new TH1F("hCovMatSecVXX2Prong", " Secondary Vertex 2-prong ; XX element of covariant matrix (cm^2)", 100, 0., 0.2);
   fOutput->Add(fHistPtD0);
+  fOutput->Add(fHistInvMassD0);
   fOutput->Add(fHistPtD0Dau0);
   fOutput->Add(fHistPtD0Dau1);
   fOutput->Add(fHistImpParD0Dau0);
   fOutput->Add(fHistImpParD0Dau1);
   fOutput->Add(fHistd0Timesd0);
-  fOutput->Add(fHistInvMassD0);
+  fOutput->Add(fHistCosPointD0);
   fOutput->Add(fHistDecLenD0);
   fOutput->Add(fHistDecLenXYD0);
   fOutput->Add(fHistImpParErrD0Dau);
@@ -532,8 +618,18 @@ void AliAnalysisTaskHFSimpleVertices::UserCreateOutputObjects() {
   fOutput->Add(fHistCovMatPrimVXX3Prong);
   fOutput->Add(fHistCovMatSecVXX3Prong);
 
+  // Ds->KKpi candidate histos
+  fHistInvMassDs = new TH1F("hInvMassDs", " ; M_{KK#pi} (GeV/c^{2})", 500, 1.7, 2.2);
+  fHistPtDs = new TH1F("hPtDs"," ; D_{s} p_{T} (GeV/c)",100, 0, 10.);
+  fHistDecLenDs = new TH1F("hDecLenDs"," ; Decay Length (cm)", 200, 0., 2.0);
+  fHistCosPointDs = new TH1F("hCosPointDs", " ; cos(#theta_{P})", 110, -1.1, 1.1);
+  fOutput->Add(fHistInvMassDs);
+  fOutput->Add(fHistPtDs);
+  fOutput->Add(fHistDecLenDs);
+  fOutput->Add(fHistCosPointDs);
+  
   // Lc pKpi candidate histos
-  fHistInvMassLc = new TH1F("hInvMassLc", " ; M_{pK#pi} (GeV/c^{2}, 100, 0., 1.0e-4);)", 500, 1.6, 3.1);
+  fHistInvMassLc = new TH1F("hInvMassLc", " ; M_{pK#pi} (GeV/c^{2})", 500, 1.6, 3.1);
   fHistPtLc = new TH1F("hPtLc", " ; Lc p_{T} (GeV/c)", 100, 0, 10.);
   fHistPtLcDau0 = new TH1F("hPtLcDau0", " Lc prong0 ; p_{T} (GeV/c)", 100, 0, 10.);
   fHistPtLcDau1 = new TH1F("hPtLcDau1", " Lc prong1 ; p_{T} (GeV/c)", 100, 0, 10.);
@@ -653,7 +749,9 @@ void AliAnalysisTaskHFSimpleVertices::UserExec(Option_t *)
     status[iTrack] = SingleTrkCuts(track,primVtxTrk,bzkG);
   }
 
+  Double_t d02[2]={0.,0.};
   Double_t d03[3] = {0., 0., 0.};
+  AliAODRecoDecay* rd4massCalc2 = new AliAODRecoDecay(0x0, 2, 0, d02);
   AliAODRecoDecay* rd4massCalc3 = new AliAODRecoDecay(0x0, 3, 1, d03);
   TObjArray* twoTrackArray = new TObjArray(2);
   TObjArray* threeTrackArray = new TObjArray(3);
@@ -675,80 +773,88 @@ void AliAnalysisTaskHFSimpleVertices::UserExec(Option_t *)
       if (status[iNegTrack_0] == 0) continue;
       twoTrackArray->AddAt(track_p0, 0);
       twoTrackArray->AddAt(track_n0, 1);
+
+
       AliESDVertex* trkv = ReconstructSecondaryVertex(twoTrackArray, primVtxTrk);
       if (trkv == 0x0) {
-        twoTrackArray->Clear();
-        continue;
+	twoTrackArray->Clear();
+	continue;
       }
       fHist2ProngVertX->Fill(trkv->GetX());
       fHist2ProngVertY->Fill(trkv->GetY());
       fHist2ProngVertZ->Fill(trkv->GetZ());
-
+      
       double deltax = trkv->GetX() - primVtxTrk->GetX();
       double deltay = trkv->GetY() - primVtxTrk->GetY();
       double deltaz = trkv->GetZ() - primVtxTrk->GetZ();
       double decaylength = TMath::Sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
       double decaylengthxy = TMath::Sqrt(deltax * deltax + deltay * deltay);
-
-      AliAODVertex* vertexAOD = ConvertToAODVertex(trkv);
-      AliAODRecoDecayHF2Prong* the2Prong = Make2Prong(twoTrackArray, vertexAOD, bzkG);
-      the2Prong->SetOwnPrimaryVtx(vertexAODp);
-      Int_t deroSel = 3;
-      if(fSelectD0 + fSelectD0bar > 0){
-        deroSel = DzeroSelectionCuts(the2Prong);
-      }
-      if(deroSel>0) {
-        Double_t m0 = the2Prong->InvMassD0();
-        Double_t m0b = the2Prong->InvMassD0bar();
-        Double_t ptD = the2Prong->Pt();
-        Double_t ptDau0 = the2Prong->PtProng(0);
-        Double_t ptDau1 = the2Prong->PtProng(1);
-        Double_t ipDau0 = the2Prong->Getd0Prong(0);
-        Double_t ipDau1 = the2Prong->Getd0Prong(1);
-        Double_t d0xd0 = the2Prong->Prodd0d0();
-        if (fSelectD0 == 0 || deroSel == 1 || deroSel == 3) fHistInvMassD0->Fill(m0);
-        if (fSelectD0bar == 0 || deroSel == 2 || deroSel == 3) fHistInvMassD0->Fill(m0b);
-        fHistPtD0->Fill(ptD);
-        fHistPtD0Dau0->Fill(ptDau0);
-        fHistPtD0Dau1->Fill(ptDau1);
-        fHistImpParD0Dau0->Fill(ipDau0);
-        fHistImpParD0Dau1->Fill(ipDau1);
-        fHistd0Timesd0->Fill(d0xd0);
-        fHistDecLenD0->Fill(decaylength);
-        fHistDecLenXYD0->Fill(decaylengthxy);
-        fHistImpParErrD0Dau->Fill(the2Prong->Getd0errProng(0));
-        fHistImpParErrD0Dau->Fill(the2Prong->Getd0errProng(1));
-        fHistDecLenErrD0->Fill(the2Prong->DecayLengthError());
-        fHistDecLenXYErrD0->Fill(the2Prong->DecayLengthXYError());
-        Double_t covMatrix[6];
-        the2Prong->GetPrimaryVtx()->GetCovMatrix(covMatrix);
-        fHistCovMatPrimVXX2Prong->Fill(covMatrix[0]);
-        the2Prong->GetSecondaryVtx()->GetCovMatrix(covMatrix);
-        fHistCovMatSecVXX2Prong->Fill(covMatrix[0]);
-	if(fReadMC && mcEvent){
-	  Int_t labD=MatchToMC(the2Prong,421,mcEvent,2,twoTrackArray,pdgD0dau);
-	  if(labD>=0){
-	    fHistD0SignalVertX->Fill(trkv->GetX());
-	    fHistD0SignalVertY->Fill(trkv->GetY());
-	    fHistD0SignalVertZ->Fill(trkv->GetZ());
-	    AliESDtrack* trDau0=(AliESDtrack*)twoTrackArray->UncheckedAt(0);
-	    Int_t labelDau0=TMath::Abs(trDau0->GetLabel());
-	    AliMCParticle* partDau0 = (AliMCParticle*)mcEvent->GetTrack(labelDau0);
-	    Int_t pdgCode = TMath::Abs(partDau0->PdgCode());
-	    if(pdgCode==211){
-	      fHistInvMassD0Signal->Fill(m0);
-	      fHistInvMassD0Refl->Fill(m0b);
-	    }else if(pdgCode==321){
-	      fHistInvMassD0Signal->Fill(m0b);
-	      fHistInvMassD0Refl->Fill(m0);
+      
+      if(SelectInvMassAndPtDzero(twoTrackArray,rd4massCalc2)>0){
+	AliAODVertex* vertexAOD = ConvertToAODVertex(trkv);
+	AliAODRecoDecayHF2Prong* the2Prong = Make2Prong(twoTrackArray, vertexAOD, bzkG);
+	the2Prong->SetOwnPrimaryVtx(vertexAODp);
+	Int_t dzeroSel = 3;
+	if(fCandidateCutLevel == 2){
+	  if(fSelectD0 + fSelectD0bar > 0){
+	    dzeroSel = DzeroSelectionCuts(the2Prong);
+	  }
+	}else if(fCandidateCutLevel == 1){
+	  dzeroSel = DzeroSkimCuts(the2Prong);
+	}
+	if(dzeroSel>0) {
+	  Double_t m0 = the2Prong->InvMassD0();
+	  Double_t m0b = the2Prong->InvMassD0bar();
+	  Double_t ptD = the2Prong->Pt();
+	  Double_t ptDau0 = the2Prong->PtProng(0);
+	  Double_t ptDau1 = the2Prong->PtProng(1);
+	  Double_t ipDau0 = the2Prong->Getd0Prong(0);
+	  Double_t ipDau1 = the2Prong->Getd0Prong(1);
+	  Double_t d0xd0 = the2Prong->Prodd0d0();
+	  if (fSelectD0 == 0 || dzeroSel == 1 || dzeroSel == 3) fHistInvMassD0->Fill(m0);
+	  if (fSelectD0bar == 0 || dzeroSel == 2 || dzeroSel == 3) fHistInvMassD0->Fill(m0b);
+	  fHistPtD0->Fill(ptD);
+	  fHistPtD0Dau0->Fill(ptDau0);
+	  fHistPtD0Dau1->Fill(ptDau1);
+	  fHistImpParD0Dau0->Fill(ipDau0);
+	  fHistImpParD0Dau1->Fill(ipDau1);
+	  fHistd0Timesd0->Fill(d0xd0);
+	  fHistCosPointD0->Fill(the2Prong->CosPointingAngle());
+	  fHistDecLenD0->Fill(decaylength);
+	  fHistDecLenXYD0->Fill(decaylengthxy);
+	  fHistImpParErrD0Dau->Fill(the2Prong->Getd0errProng(0));
+	  fHistImpParErrD0Dau->Fill(the2Prong->Getd0errProng(1));
+	  fHistDecLenErrD0->Fill(the2Prong->DecayLengthError());
+	  fHistDecLenXYErrD0->Fill(the2Prong->DecayLengthXYError());
+	  Double_t covMatrix[6];
+	  the2Prong->GetPrimaryVtx()->GetCovMatrix(covMatrix);
+	  fHistCovMatPrimVXX2Prong->Fill(covMatrix[0]);
+	  the2Prong->GetSecondaryVtx()->GetCovMatrix(covMatrix);
+	  fHistCovMatSecVXX2Prong->Fill(covMatrix[0]);
+	  if(fReadMC && mcEvent){
+	    Int_t labD=MatchToMC(the2Prong,421,mcEvent,2,twoTrackArray,pdgD0dau);
+	    if(labD>=0){
+	      fHistD0SignalVertX->Fill(trkv->GetX());
+	      fHistD0SignalVertY->Fill(trkv->GetY());
+	      fHistD0SignalVertZ->Fill(trkv->GetZ());
+	      AliESDtrack* trDau0=(AliESDtrack*)twoTrackArray->UncheckedAt(0);
+	      Int_t labelDau0=TMath::Abs(trDau0->GetLabel());
+	      AliMCParticle* partDau0 = (AliMCParticle*)mcEvent->GetTrack(labelDau0);
+	      Int_t pdgCode = TMath::Abs(partDau0->PdgCode());
+	      if(pdgCode==211){
+		fHistInvMassD0Signal->Fill(m0);
+		fHistInvMassD0Refl->Fill(m0b);
+	      }else if(pdgCode==321){
+		fHistInvMassD0Signal->Fill(m0b);
+		fHistInvMassD0Refl->Fill(m0);
+	      }
 	    }
 	  }
 	}
+	delete the2Prong;
+	delete vertexAOD;
       }
       delete trkv;
-      delete the2Prong;
-      delete vertexAOD;
-
       if (fDo3Prong) {
         if(status[iPosTrack_0]<=1) continue;
         if(status[iNegTrack_0]<=1) continue;
@@ -762,83 +868,7 @@ void AliAnalysisTaskHFSimpleVertices::UserExec(Option_t *)
           threeTrackArray->AddAt(track_p0, 0);
           threeTrackArray->AddAt(track_n0, 1);
           threeTrackArray->AddAt(track_p1, 2);
-          Int_t massSel = SelectInvMassAndPt3prong(threeTrackArray, rd4massCalc3);
-          if (massSel == 0) {
-            threeTrackArray->Clear();
-            continue;
-          }
-          AliESDVertex* trkv3 = ReconstructSecondaryVertex(threeTrackArray, primVtxTrk);
-          if (trkv3 == 0x0) {
-            threeTrackArray->Clear();
-            continue;
-          }
-          AliAODVertex* vertexAOD3 = ConvertToAODVertex(trkv3);
-          AliAODRecoDecayHF3Prong* the3Prong = Make3Prong(threeTrackArray, vertexAOD3, bzkG);
-          the3Prong->SetOwnPrimaryVtx(vertexAODp);
-          Double_t ptcand_3prong = the3Prong->Pt();
-          if (ptcand_3prong < fMinPt3Prong) continue;
-          if (massSel & (1 << kbitDplus)) {
-            Double_t sqSumd0Prong = 0;
-            for(Int_t iProng = 0; iProng < 3; iProng++)
-              sqSumd0Prong += the3Prong->Getd0Prong(iProng) * the3Prong->Getd0Prong(iProng);
-            fHistDplusVertX->Fill(trkv3->GetX());
-            fHistDplusVertY->Fill(trkv3->GetY());
-            fHistDplusVertZ->Fill(trkv3->GetZ());
-            fHistInvMassDplus->Fill(the3Prong->InvMassDplus());
-            fHistPtDPlus->Fill(ptcand_3prong);
-            fHistPtDplusDau0->Fill(the3Prong->PtProng(0));
-            fHistPtDplusDau1->Fill(the3Prong->PtProng(1));
-            fHistPtDplusDau2->Fill(the3Prong->PtProng(2));
-            fHistImpParDplusDau0->Fill(the3Prong->Getd0Prong(0));
-            fHistImpParDplusDau1->Fill(the3Prong->Getd0Prong(1));
-            fHistImpParDplusDau2->Fill(the3Prong->Getd0Prong(2));
-            fHistDecLenDplus->Fill(the3Prong->DecayLength());
-            fHistDecLenXYDplus->Fill(the3Prong->DecayLengthXY());
-            fHistNormDecLenXYDplus->Fill(the3Prong->NormalizedDecayLengthXY());
-            fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(0));
-            fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(1));
-            fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(2));
-            fHistDecLenErrDplus->Fill(the3Prong->DecayLengthError());
-            fHistDecLenXYErrDplus->Fill(the3Prong->DecayLengthXYError());
-            fHistCosPointDplus->Fill(the3Prong->CosPointingAngle());
-            fHistCosPointXYDplus->Fill(the3Prong->CosPointingAngleXY());
-            fHistImpParXYDplus->Fill(the3Prong->ImpParXY());
-            fHistNormIPDplus->Fill(AliVertexingHFUtils::ComputeMaxd0MeasMinusExp(the3Prong, bzkG));
-            fHistoSumSqImpParDplusDau->Fill(sqSumd0Prong);
-            Double_t covMatrix[6];
-            the3Prong->GetPrimaryVtx()->GetCovMatrix(covMatrix);
-            fHistCovMatPrimVXX3Prong->Fill(covMatrix[0]);
-            the3Prong->GetSecondaryVtx()->GetCovMatrix(covMatrix);
-            fHistCovMatSecVXX3Prong->Fill(covMatrix[0]);
-          }
-          if (massSel & (1 << kbitLc)) {
-            if (decaylength <= fLcCuts[0][4]) {    //cut on dist12
-              continue;
-            }
-            fHistLcpKpiVertX->Fill(trkv3->GetX());
-            fHistLcpKpiVertY->Fill(trkv3->GetY());
-            fHistLcpKpiVertZ->Fill(trkv3->GetZ());
-            fHistDist12LcpKpi->Fill(decaylength);
-            Int_t lcSel = 3;
-            if (fSelectLcpKpi > 0) {
-              lcSel = LcSelectionCuts(the3Prong);
-            }
-            if (lcSel > 0) {
-              Double_t m0LcpKpi = the3Prong->InvMassLcpKpi();
-              Double_t m0LcpiKp = the3Prong->InvMassLcpiKp();
-              if (fSelectLcpKpi == 0 || lcSel == 1 || lcSel == 3) fHistInvMassLc->Fill(m0LcpKpi);
-              if (fSelectLcpKpi == 0 || lcSel == 2 || lcSel == 3) fHistInvMassLc->Fill(m0LcpiKp);
-              fHistPtLc->Fill(the3Prong->Pt());
-              fHistPtLcDau0->Fill(the3Prong->PtProng(0));
-              fHistPtLcDau1->Fill(the3Prong->PtProng(1));
-              fHistPtLcDau2->Fill(the3Prong->PtProng(2));
-              fHistDecLenLc->Fill(the3Prong->DecayLength());
-              fHistCosPointLc->Fill(the3Prong->CosPointingAngle());
-            }
-          }
-          delete trkv3;
-          delete the3Prong;
-          delete vertexAOD3;
+	  ProcessTriplet(threeTrackArray, rd4massCalc3,primVtxTrk,vertexAODp,bzkG,decaylength);
           threeTrackArray->Clear();
         }
         for (Int_t iNegTrack_1 = iNegTrack_0 + 1; iNegTrack_1 < totTracks; iNegTrack_1++) {
@@ -851,58 +881,7 @@ void AliAnalysisTaskHFSimpleVertices::UserExec(Option_t *)
           threeTrackArray->AddAt(track_n0, 0);
           threeTrackArray->AddAt(track_p0, 1);
           threeTrackArray->AddAt(track_n1, 2);
-          Int_t massSel = SelectInvMassAndPt3prong(threeTrackArray, rd4massCalc3);
-          if (massSel == 0) {
-            threeTrackArray->Clear();
-            continue;
-          }
-          AliESDVertex* trkv3 = ReconstructSecondaryVertex(threeTrackArray, primVtxTrk);
-          if (trkv3 == 0x0) {
-            threeTrackArray->Clear();
-            continue;
-          }
-          AliAODVertex* vertexAOD3 = ConvertToAODVertex(trkv3);
-          AliAODRecoDecayHF3Prong* the3Prong = Make3Prong(threeTrackArray, vertexAOD3, bzkG);
-          the3Prong->SetOwnPrimaryVtx(vertexAODp);
-          Double_t ptcand_3prong = the3Prong->Pt();
-          if (ptcand_3prong < fMinPt3Prong) continue;
-          if (massSel & (1 << kbitDplus)) {
-            Double_t sqSumd0Prong = 0;
-            for(Int_t iProng = 0; iProng < 3; iProng++)
-              sqSumd0Prong += the3Prong->Getd0Prong(iProng) * the3Prong->Getd0Prong(iProng);
-            fHistDplusVertX->Fill(trkv3->GetX());
-            fHistDplusVertY->Fill(trkv3->GetY());
-            fHistDplusVertZ->Fill(trkv3->GetZ());
-            fHistInvMassDplus->Fill(the3Prong->InvMassDplus());
-            fHistPtDPlus->Fill(ptcand_3prong);
-            fHistPtDplusDau0->Fill(the3Prong->PtProng(0));
-            fHistPtDplusDau1->Fill(the3Prong->PtProng(1));
-            fHistPtDplusDau2->Fill(the3Prong->PtProng(2));
-            fHistImpParDplusDau0->Fill(the3Prong->Getd0Prong(0));
-            fHistImpParDplusDau1->Fill(the3Prong->Getd0Prong(1));
-            fHistImpParDplusDau2->Fill(the3Prong->Getd0Prong(2));
-            fHistDecLenDplus->Fill(the3Prong->DecayLength());
-            fHistDecLenXYDplus->Fill(the3Prong->DecayLengthXY());
-            fHistNormDecLenXYDplus->Fill(the3Prong->NormalizedDecayLengthXY());
-            fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(0));
-            fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(1));
-            fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(2));
-            fHistDecLenErrDplus->Fill(the3Prong->DecayLengthError());
-            fHistDecLenXYErrDplus->Fill(the3Prong->DecayLengthXYError());
-            fHistCosPointDplus->Fill(the3Prong->CosPointingAngle());
-            fHistCosPointXYDplus->Fill(the3Prong->CosPointingAngleXY());
-            fHistImpParXYDplus->Fill(the3Prong->ImpParXY());
-            fHistNormIPDplus->Fill(AliVertexingHFUtils::ComputeMaxd0MeasMinusExp(the3Prong, bzkG));
-            fHistoSumSqImpParDplusDau->Fill(sqSumd0Prong);
-            Double_t covMatrix[6];
-            the3Prong->GetPrimaryVtx()->GetCovMatrix(covMatrix);
-            fHistCovMatPrimVXX3Prong->Fill(covMatrix[0]);
-            the3Prong->GetSecondaryVtx()->GetCovMatrix(covMatrix);
-            fHistCovMatSecVXX3Prong->Fill(covMatrix[0]);
-          }
-          delete trkv3;
-          delete the3Prong;
-          delete vertexAOD3;
+	  ProcessTriplet(threeTrackArray, rd4massCalc3,primVtxTrk,vertexAODp,bzkG,decaylength);
           threeTrackArray->Clear();
         }
       }
@@ -919,6 +898,117 @@ void AliAnalysisTaskHFSimpleVertices::UserExec(Option_t *)
   PostData(1,fOutput);
 
 }
+
+
+//______________________________________________________________________________
+void AliAnalysisTaskHFSimpleVertices::ProcessTriplet(TObjArray* threeTrackArray, AliAODRecoDecay* rd4massCalc3, AliESDVertex* primVtxTrk, AliAODVertex *vertexAODp, float bzkG, double dist12){
+  
+  Int_t massSel = SelectInvMassAndPt3prong(threeTrackArray, rd4massCalc3);
+  if (massSel == 0) {
+    threeTrackArray->Clear();
+    return;
+  }
+  AliESDVertex* trkv3 = ReconstructSecondaryVertex(threeTrackArray, primVtxTrk);
+  if (trkv3 == 0x0) {
+    threeTrackArray->Clear();
+    return;
+  }
+  AliAODVertex* vertexAOD3 = ConvertToAODVertex(trkv3);
+  AliAODRecoDecayHF3Prong* the3Prong = Make3Prong(threeTrackArray, vertexAOD3, bzkG);
+  the3Prong->SetOwnPrimaryVtx(vertexAODp);
+  Double_t ptcand_3prong = the3Prong->Pt();
+  if (ptcand_3prong < fMinPt3Prong){
+    delete the3Prong;
+    delete vertexAOD3;
+    return;
+  }
+  Double_t covMatrix[6];
+  the3Prong->GetPrimaryVtx()->GetCovMatrix(covMatrix);
+  fHistCovMatPrimVXX3Prong->Fill(covMatrix[0]);
+  the3Prong->GetSecondaryVtx()->GetCovMatrix(covMatrix);
+  fHistCovMatSecVXX3Prong->Fill(covMatrix[0]);
+  
+  if (massSel & (1 << kbitDplus)) {
+    Int_t dplusSel = 1;
+    if(fCandidateCutLevel >= 1){
+      dplusSel = DplusSkimCuts(the3Prong);
+    }
+    if(dplusSel>0) {
+      Double_t sqSumd0Prong = 0;
+      for(Int_t iProng = 0; iProng < 3; iProng++)
+	sqSumd0Prong += the3Prong->Getd0Prong(iProng) * the3Prong->Getd0Prong(iProng);
+      fHistDplusVertX->Fill(trkv3->GetX());
+      fHistDplusVertY->Fill(trkv3->GetY());
+      fHistDplusVertZ->Fill(trkv3->GetZ());
+      fHistInvMassDplus->Fill(the3Prong->InvMassDplus());
+      fHistPtDPlus->Fill(ptcand_3prong);
+      fHistPtDplusDau0->Fill(the3Prong->PtProng(0));
+      fHistPtDplusDau1->Fill(the3Prong->PtProng(1));
+      fHistPtDplusDau2->Fill(the3Prong->PtProng(2));
+      fHistImpParDplusDau0->Fill(the3Prong->Getd0Prong(0));
+      fHistImpParDplusDau1->Fill(the3Prong->Getd0Prong(1));
+      fHistImpParDplusDau2->Fill(the3Prong->Getd0Prong(2));
+      fHistDecLenDplus->Fill(the3Prong->DecayLength());
+      fHistDecLenXYDplus->Fill(the3Prong->DecayLengthXY());
+      fHistNormDecLenXYDplus->Fill(the3Prong->NormalizedDecayLengthXY());
+      fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(0));
+      fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(1));
+      fHistImpParErrDplusDau->Fill(the3Prong->Getd0errProng(2));
+      fHistDecLenErrDplus->Fill(the3Prong->DecayLengthError());
+      fHistDecLenXYErrDplus->Fill(the3Prong->DecayLengthXYError());
+      fHistCosPointDplus->Fill(the3Prong->CosPointingAngle());
+      fHistCosPointXYDplus->Fill(the3Prong->CosPointingAngleXY());
+      fHistImpParXYDplus->Fill(the3Prong->ImpParXY());
+      fHistNormIPDplus->Fill(AliVertexingHFUtils::ComputeMaxd0MeasMinusExp(the3Prong, bzkG));
+      fHistoSumSqImpParDplusDau->Fill(sqSumd0Prong);
+    }
+  }
+  if (massSel & (1 << kbitDs)) {
+    Int_t dsSel = 3;
+    if(fCandidateCutLevel >= 1){
+      dsSel = DsSkimCuts(the3Prong);
+    }
+    if(dsSel>0) {
+      Double_t mKKpi=the3Prong->InvMassDsKKpi();
+      Double_t mpiKK=the3Prong->InvMassDspiKK();
+      if( dsSel==1 || dsSel==3) fHistInvMassDs->Fill(mKKpi);
+      if( dsSel==2 || dsSel==3) fHistInvMassDs->Fill(mpiKK);
+      fHistPtDs->Fill(the3Prong->Pt());
+      fHistDecLenDs->Fill(the3Prong->DecayLength());
+      fHistCosPointDs->Fill(the3Prong->CosPointingAngle());
+    }
+  }
+  if (massSel & (1 << kbitLc)) {
+    fHistLcpKpiVertX->Fill(trkv3->GetX());
+    fHistLcpKpiVertY->Fill(trkv3->GetY());
+    fHistLcpKpiVertZ->Fill(trkv3->GetZ());
+    fHistDist12LcpKpi->Fill(dist12);
+    Int_t lcSel = 3;
+    if(fCandidateCutLevel == 2 && fSelectLcpKpi > 0){
+      lcSel = LcSelectionCuts(the3Prong);
+      if(dist12 <= fLcCuts[0][4]) lcSel=0; //cut on dist12
+    }else if(fCandidateCutLevel == 1){
+      lcSel = LcSkimCuts(the3Prong);
+    }
+    if (lcSel > 0) {
+      Double_t m0LcpKpi = the3Prong->InvMassLcpKpi();
+      Double_t m0LcpiKp = the3Prong->InvMassLcpiKp();
+      if (fSelectLcpKpi == 0 || lcSel == 1 || lcSel == 3) fHistInvMassLc->Fill(m0LcpKpi);
+      if (fSelectLcpKpi == 0 || lcSel == 2 || lcSel == 3) fHistInvMassLc->Fill(m0LcpiKp);
+      fHistPtLc->Fill(the3Prong->Pt());
+      fHistPtLcDau0->Fill(the3Prong->PtProng(0));
+      fHistPtLcDau1->Fill(the3Prong->PtProng(1));
+      fHistPtLcDau2->Fill(the3Prong->PtProng(2));
+      fHistDecLenLc->Fill(the3Prong->DecayLength());
+      fHistCosPointLc->Fill(the3Prong->CosPointingAngle());
+    }
+  }
+  delete trkv3;
+  delete the3Prong;
+  delete vertexAOD3;
+  return;
+}
+
 
 //______________________________________________________________________________
 Bool_t AliAnalysisTaskHFSimpleVertices::GetTrackMomentumAtSecVert(AliESDtrack* tr, AliAODVertex* secVert, Double_t momentum[3], float bzkG)
@@ -1030,6 +1120,27 @@ AliAODVertex* AliAnalysisTaskHFSimpleVertices::ConvertToAODVertex(AliESDVertex* 
   return vertexAOD;
 }
 //______________________________________________________________________________
+Int_t AliAnalysisTaskHFSimpleVertices::DzeroSkimCuts(AliAODRecoDecayHF2Prong* cand)
+{
+  bool isD0 = true;
+  bool isD0bar = true;
+  Double_t ptCand = cand->Pt();
+  if (ptCand < fDzeroSkimCuts[0]) return 0;
+  Double_t m0=cand->InvMassD0();
+  Double_t m0b=cand->InvMassD0bar();
+  if(m0 < fDzeroSkimCuts[1] || m0 > fDzeroSkimCuts[2]) isD0=false;
+  if(m0b < fDzeroSkimCuts[1] || m0b > fDzeroSkimCuts[2])  isD0bar=false;
+  if (!isD0 && !isD0bar) return 0;
+  if (cand->CosPointingAngle() < fDzeroSkimCuts[3]) return 0;
+  if (cand->Prodd0d0() > fDzeroSkimCuts[4]) return 0;
+  
+  Int_t returnValue=0;
+  if(isD0) returnValue+=1;
+  if(isD0bar) returnValue+=2;
+  return returnValue;
+ 
+}
+//______________________________________________________________________________
 Int_t AliAnalysisTaskHFSimpleVertices::DzeroSelectionCuts(AliAODRecoDecayHF2Prong* cand)
 {
   bool isD0 = true;
@@ -1072,6 +1183,58 @@ Int_t AliAnalysisTaskHFSimpleVertices::DzeroSelectionCuts(AliAODRecoDecayHF2Pron
 
 }
 //______________________________________________________________________________
+Int_t AliAnalysisTaskHFSimpleVertices::DplusSkimCuts(AliAODRecoDecayHF3Prong* cand)
+{
+  Double_t ptCand = cand->Pt();
+  if (ptCand < fDplusSkimCuts[0]) return 0;
+  Double_t m=cand->InvMassDplus();
+  if(m < fDplusSkimCuts[1] || m > fDplusSkimCuts[2])  return 0;
+  if (cand->CosPointingAngle() < fDplusSkimCuts[3]) return 0;
+  if (cand->DecayLength2() < fDplusSkimCuts[4]*fDplusSkimCuts[4]) return 0;
+  
+  return 1;
+}
+//______________________________________________________________________________
+Int_t AliAnalysisTaskHFSimpleVertices::DsSkimCuts(AliAODRecoDecayHF3Prong* cand)
+{
+  bool isKKpi = true;
+  bool ispiKK = true;
+  Double_t ptCand = cand->Pt();
+  if (ptCand < fDsSkimCuts[0]) return 0;
+  Double_t mKKpi=cand->InvMassDsKKpi();
+  Double_t mpiKK=cand->InvMassDspiKK();
+  if(mKKpi < fDsSkimCuts[1] || mKKpi > fDsSkimCuts[2]) isKKpi=false;
+  if(mpiKK < fDsSkimCuts[1] || mpiKK > fDsSkimCuts[2]) ispiKK=false;
+  if (!isKKpi && !ispiKK) return 0;
+  if (cand->CosPointingAngle() < fDsSkimCuts[3]) return 0;
+  if (cand->DecayLength2() < fDsSkimCuts[4]*fDsSkimCuts[4]) return 0;
+  
+  Int_t returnValue=0;
+  if(isKKpi) returnValue+=1;
+  if(ispiKK) returnValue+=2;
+  return returnValue;
+}
+//______________________________________________________________________________
+Int_t AliAnalysisTaskHFSimpleVertices::LcSkimCuts(AliAODRecoDecayHF3Prong* cand)
+{
+  bool ispKpi = true;
+  bool ispiKp = true;
+  Double_t ptCand = cand->Pt();
+  if (ptCand < fLcSkimCuts[0]) return 0;
+  Double_t mpKpi=cand->InvMassLcpKpi();
+  Double_t mpiKp=cand->InvMassLcpiKp();
+  if(mpKpi < fLcSkimCuts[1] || mpKpi > fLcSkimCuts[2]) ispKpi=false;
+  if(mpiKp < fLcSkimCuts[1] || mpiKp > fLcSkimCuts[2]) ispiKp=false;
+  if (!ispKpi && !ispiKp) return 0;
+  if (cand->CosPointingAngle() < fLcSkimCuts[3]) return 0;
+  if (cand->DecayLength2() < fLcSkimCuts[4]*fLcSkimCuts[4]) return 0;
+  
+  Int_t returnValue=0;
+  if(ispKpi) returnValue+=1;
+  if(ispiKp) returnValue+=2;
+  return returnValue;
+}
+//______________________________________________________________________________
 Int_t AliAnalysisTaskHFSimpleVertices::GetPtBin(Double_t ptCand)
 {
   for (Int_t i = 0; i < fNPtBins; i++) {
@@ -1082,6 +1245,34 @@ Int_t AliAnalysisTaskHFSimpleVertices::GetPtBin(Double_t ptCand)
   return -1;
 }
 
+
+//______________________________________________________________________________
+Int_t AliAnalysisTaskHFSimpleVertices::SelectInvMassAndPtDzero(TObjArray* trkArray, AliAODRecoDecay* rd4massCalc2)
+{
+  Int_t retval = 0;
+  Double_t momentum[3];
+  Double_t px[2], py[2], pz[2];
+  for (Int_t iTrack = 0; iTrack < 2; iTrack++) {
+    AliESDtrack* track = (AliESDtrack*)trkArray->UncheckedAt(iTrack);
+    track->GetPxPyPz(momentum);
+    px[iTrack] = momentum[0];
+    py[iTrack] = momentum[1];
+    pz[iTrack] = momentum[2];
+  }
+  UInt_t pdg2[2];
+  Int_t nprongs = 2;
+  rd4massCalc2->SetPxPyPzProngs(nprongs, px, py, pz);
+  Double_t minv2;
+  Double_t lolim=fDzeroSkimCuts[1];
+  Double_t hilim=fDzeroSkimCuts[2];
+  pdg2[0]=211; pdg2[1]=321;   // pi+ K- --> D0
+  minv2 = rd4massCalc2->InvMass2(nprongs,pdg2);
+  if(minv2>lolim*lolim && minv2<hilim*hilim ) retval+=1;
+  pdg2[0]=321; pdg2[1]=211;   // K+ pi- --> D0bar
+  minv2 = rd4massCalc2->InvMass2(nprongs,pdg2);
+  if(minv2>lolim*lolim && minv2<hilim*hilim ) retval+=2;
+  return retval;
+}
 //______________________________________________________________________________
 Int_t AliAnalysisTaskHFSimpleVertices::SelectInvMassAndPt3prong(TObjArray* trkArray, AliAODRecoDecay* rd4massCalc3)
 {
@@ -1099,19 +1290,17 @@ Int_t AliAnalysisTaskHFSimpleVertices::SelectInvMassAndPt3prong(TObjArray* trkAr
   UInt_t pdg3[3];
   Int_t nprongs = 3;
   rd4massCalc3->SetPxPyPzProngs(nprongs, px, py, pz);
-  Double_t minv2, mrange, mrangeLc;
-  Double_t lolim, hilim;
-  mrange = 0.1;
-  lolim = fMassDplus - mrange;
-  hilim = fMassDplus + mrange;
+  Double_t minv2;
+  Double_t lolim=fDplusSkimCuts[1];
+  Double_t hilim=fDplusSkimCuts[2];
   pdg3[0] = 211;
   pdg3[1] = 321;
   pdg3[2] = 211;
   minv2 = rd4massCalc3->InvMass2(nprongs, pdg3);
   if (minv2 > lolim * lolim && minv2 < hilim * hilim)
     retval += (1 << kbitDplus);
-  lolim = fMassDs - mrange;
-  hilim = fMassDs + mrange;
+  lolim=fDsSkimCuts[1];
+  hilim=fDsSkimCuts[2];
   for (Int_t ih = 0; ih < 2; ih++) {
     Int_t k = ih * 2;
     pdg3[k] = 321;
@@ -1121,9 +1310,8 @@ Int_t AliAnalysisTaskHFSimpleVertices::SelectInvMassAndPt3prong(TObjArray* trkAr
     if (minv2 > lolim * lolim && minv2 < hilim * hilim && (retval & (1 << kbitDs)) == 0)
       retval += (1 << kbitDs);
   }
-  mrangeLc = 0.5;
-  lolim = fMassLambdaC - mrangeLc;
-  hilim = fMassLambdaC + mrangeLc;
+  lolim=fLcSkimCuts[1];
+  hilim=fLcSkimCuts[2];
   pdg3[0] = 2212;
   pdg3[1] = 321;
   pdg3[2] = 211;

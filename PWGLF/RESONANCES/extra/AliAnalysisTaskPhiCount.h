@@ -30,7 +30,7 @@ class AliAnalysisTaskPhiCount : public AliAnalysisTaskSE
     
     private:
         void                    fSetZero                    ();
-        void                    fPostData                   ();
+        void                    fPostData                   ( Bool_t            fEventEfficiency, Int_t nPhi, Int_t nPhiTru,Int_t nKaon, Int_t nKaonTru);
         bool                    fIsPrimaryVertexCandidate   ( AliAODEvent*      event );
         bool                    fIsTrackCandidate           ( AliAODTrack *     track );
         bool                    fIsKaonCandidate            ( AliAODTrack *     track );
@@ -64,6 +64,7 @@ class AliAnalysisTaskPhiCount : public AliAnalysisTaskSE
         // Event Variables
         Float_t                 fMultiplicity;      //! Event Multiplicity
         Float_t                 fMultiplicit2;      //! Event Multiplicity
+        Float_t                 fMultiplicit3;      //! Event Multiplicity
         Int_t                   fKaonLabels [1024]; //! Kaon Labels
          
         // Tree Variables ( PhiCandidate )

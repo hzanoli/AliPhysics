@@ -14,8 +14,10 @@
 #include "AliAODMCParticle.h"
 #include "AliAODHeader.h"
 #include "AliPIDResponse.h"
+#include "AliMultSelection.h"
 #include "AliAnalysisTaskPhiCount.h"
 #include "AliPPVsMultUtils.h"
+#include "AliESDtrackCuts.h"
 
 class AliAnalysisTaskPhiCount;
 class AliPIDResponse;
@@ -85,16 +87,14 @@ void    AliAnalysisTaskPhiCount::UserCreateOutputObjects()
     // Various utility Histograms TList initialisation
     fAnalysisOutputList     = new TList();
     fAnalysisOutputList     ->SetOwner(kTRUE);
-    fHistVertex0    = new TH1F("fHistVertex0", "Collision Vertex (FULL)", 1000, -15, 15);
-    fHistVertex1    = new TH1F("fHistVertex1", "Collision Vertex (CUTS)", 1000, -15, 15);
-    fHistTPCPID0    = new TH2F("fHistTPCPID0", "TPC Response (ALL)"     , 100, 0, 4, 200, 0, 400);
-    fHistTPCPID1    = new TH2F("fHistTPCPID1", "TPC Response (Sel1)"    , 100, 0, 4, 200, 0, 400);
-    fHistTPCPID2    = new TH2F("fHistTPCPID2", "TPC Response (Sel2)"    , 100, 0, 4, 200, 0, 400);
-    fHistTOFPID0    = new TH2F("fHistTOFPID0", "TOF Response (ALL)"     , 100, 0, 4, 100, 0, 1.2);
-    fHistTOFPID1    = new TH2F("fHistTOFPID1", "TOF Response (Sel1)"    , 100, 0, 4, 100, 0, 1.2);
-    fHistTOFPID2    = new TH2F("fHistTOFPID2", "TOF Response (Sel2)"    , 100, 0, 4, 100, 0, 1.2);
-    fHistEvntEff    = new TH1F("fHistEvntEff", "fHistEvntEff"           , 4,   0.5, 4.5);
-    fAnalysisOutputList->Add(fHistEvntEff);
+    fHistVertex0    = new TH1F("fHistVertex0", "Collision Vertex (FULL)", 300, -15, 15);
+    fHistVertex1    = new TH1F("fHistVertex1", "Collision Vertex (CUTS)", 300, -15, 15);
+    fHistTPCPID0    = new TH2F("fHistTPCPID0", "TPC Response (ALL)"     , 50, 0, 4, 100, 0, 400);
+    fHistTPCPID1    = new TH2F("fHistTPCPID1", "TPC Response (Sel1)"    , 50, 0, 4, 100, 0, 400);
+    fHistTPCPID2    = new TH2F("fHistTPCPID2", "TPC Response (Sel2)"    , 50, 0, 4, 100, 0, 400);
+    fHistTOFPID0    = new TH2F("fHistTOFPID0", "TOF Response (ALL)"     , 50, 0, 4, 120, 0, 1.2);
+    fHistTOFPID1    = new TH2F("fHistTOFPID1", "TOF Response (Sel1)"    , 50, 0, 4, 120, 0, 1.2);
+    fHistTOFPID2    = new TH2F("fHistTOFPID2", "TOF Response (Sel2)"    , 50, 0, 4, 120, 0, 1.2);
     fAnalysisOutputList->Add(fHistVertex0);
     fAnalysisOutputList->Add(fHistTPCPID0);
     fAnalysisOutputList->Add(fHistTOFPID0);
@@ -107,19 +107,22 @@ void    AliAnalysisTaskPhiCount::UserCreateOutputObjects()
     PostData(1, fAnalysisOutputList);
     
     // QC utility Histograms TList initialisation
-    fQCOutputList   =   new TList();
-    fQCOutputList   ->  SetOwner(kTRUE);
-    fHistTPCPID3    =   new TH2F("fHistTPCPID3", "TPC Response (Sel3)"    , 100, 0, 4, 200, -10, 10);
-    fHistTOFPID3    =   new TH2F("fHistTOFPID3", "TOF Response (Sel3)"    , 100, 0, 4, 200, -10, 10);
-    fQCOutputList   ->  Add(fHistTPCPID3);
-    fQCOutputList   ->  Add(fHistTOFPID3);
+    fQCOutputList   = new TList();
+    fQCOutputList   ->SetOwner(kTRUE);
+    fHistTPCPID3    = new TH2F("fHistTPCPID3", "TPC Response (Sel3)"    , 50, 0.15, 4.15, 100, -10, 10);
+    fHistTOFPID3    = new TH2F("fHistTOFPID3", "TOF Response (Sel3)"    , 50, 0.15, 4.15, 100, -10, 10);
+    fHistEvntEff    = new TH1F("fHistEvntEff", "fHistEvntEff"           , 13,   0.5, 13.5);
+    fQCOutputList->Add(fHistTPCPID3);
+    fQCOutputList->Add(fHistTOFPID3);
+    fQCOutputList->Add(fHistEvntEff);
     
     PostData(2, fQCOutputList);
     
+    // Where i is the slot that writes to a tree
+    OpenFile(3);
     // PhiCandidate Tree Set-Up
     fPhiCandidate = new TTree   ("PhiCandidate",    "Data Tree for Phi Candidates");
     fPhiCandidate->Branch       ("fMultiplicity",   &fMultiplicity,     "fMultiplicity/F");
-    fPhiCandidate->Branch       ("fMultiplicit2",   &fMultiplicit2,     "fMultiplicit2/F");
     fPhiCandidate->Branch       ("nPhi",            &fnPhi,             "fnPhi/b");
     fPhiCandidate->Branch       ("Px",              &fPhiPx,            "fPhiPx[fnPhi]/F");
     fPhiCandidate->Branch       ("Py",              &fPhiPy,            "fPhiPy[fnPhi]/F");
@@ -131,16 +134,15 @@ void    AliAnalysisTaskPhiCount::UserCreateOutputObjects()
     if ( kPhibool )                 PostData(3, fPhiCandidate);
     
     // KaonCandidate Tree Set-Up
-    fKaonCandidate = new TTree  ("KaonCandidate",    "Data Tree for Kaon Candidates");
-    fKaonCandidate->Branch      ("fMultiplicity",   &fMultiplicity,     "fMultiplicity/F");
-    fKaonCandidate->Branch      ("fMultiplicit2",   &fMultiplicit2,     "fMultiplicit2/F");
-    fKaonCandidate->Branch      ("fnKaon",           &fnKaon,            "fnKaon/b");
-    fKaonCandidate->Branch      ("Px",               &fKaonPx,           "fKaonPx[fnKaon]/F");
-    fKaonCandidate->Branch      ("Py",               &fKaonPy,           "fKaonPy[fnKaon]/F");
-    fKaonCandidate->Branch      ("Pz",               &fKaonPz,           "fKaonPz[fnKaon]/F");
-    fKaonCandidate->Branch      ("Charge",           &fCharge,           "fCharge[fnKaon]/B");
-    fKaonCandidate->Branch      ("TOFSigma",         &fTOFSigma,         "fTOFSigma[fnKaon]/B");
-    fKaonCandidate->Branch      ("TPCSigma",         &fTPCSigma,         "fTPCSigma[fnKaon]/B");
+    fKaonCandidate = new TTree ("KaonCandidate",    "Data Tree for Kaon Candidates");
+    fKaonCandidate->Branch     ("fMultiplicity",    &fMultiplicity,     "fMultiplicity/F");
+    fKaonCandidate->Branch     ("fnKaon",           &fnKaon,            "fnKaon/b");
+    fKaonCandidate->Branch     ("Px",               &fKaonPx,           "fKaonPx[fnKaon]/F");
+    fKaonCandidate->Branch     ("Py",               &fKaonPy,           "fKaonPy[fnKaon]/F");
+    fKaonCandidate->Branch     ("Pz",               &fKaonPz,           "fKaonPz[fnKaon]/F");
+    fKaonCandidate->Branch     ("Charge",           &fCharge,           "fCharge[fnKaon]/B");
+    fKaonCandidate->Branch     ("TOFSigma",         &fTOFSigma,         "fTOFSigma[fnKaon]/B");
+    fKaonCandidate->Branch     ("TPCSigma",         &fTPCSigma,         "fTPCSigma[fnKaon]/B");
     
     if ( kKaonbool )                PostData(4, fKaonCandidate);
 
@@ -165,26 +167,39 @@ void    AliAnalysisTaskPhiCount::fSetZero()
     //Setting all counters and global variables to zero
     fMultiplicity   =   0;
     fnPhi           =   0;
+    fnPhiTru        =   0;
     fnKaon          =   0;
     fnPhiTru        =   0;
 }
 
 //_____________________________________________________________________________
 
-void    AliAnalysisTaskPhiCount::fPostData()
+void    AliAnalysisTaskPhiCount::fPostData( Bool_t fEventEfficiency, Int_t nPhi, Int_t nPhiTru,Int_t nKaon, Int_t nKaonTru)
 {
-    // Setting postdata options
-    
     // Post-data for TLists
     PostData(1, fAnalysisOutputList);
     PostData(2, fQCOutputList);
     
-    // Filling data for TTrees
-    fPhiCandidate   ->  Fill();
-    fKaonCandidate  ->  Fill();
-    fPhiEfficiency  ->  Fill();
-    fKaonEfficiency ->  Fill();
-    
+    if ( !fEventEfficiency )
+    {
+        // Filling data for TTrees
+        if ( nPhi !=0       && nPhi < 153)      fPhiCandidate   ->  Fill();
+        if ( nPhiTru !=0    && nPhiTru < 153)   fKaonCandidate  ->  Fill();
+        if ( nKaon !=0      && nKaon < 153)     fPhiEfficiency  ->  Fill();
+        if ( nKaonTru !=0   && nKaonTru < 153)  fKaonEfficiency ->  Fill();
+
+        // Filling event counts
+        if ( nPhi ==0 )         fHistEvntEff->Fill(6);
+        if ( nPhiTru ==0 )      fHistEvntEff->Fill(8);
+        if ( nKaon ==0 )        fHistEvntEff->Fill(10);
+        if ( nKaonTru ==0 )     fHistEvntEff->Fill(12);
+        if ( nPhi >= 153 )      fHistEvntEff->Fill(7);
+        if ( nPhiTru >= 153 )   fHistEvntEff->Fill(9);
+        if ( nKaon >= 153 )     fHistEvntEff->Fill(11);
+        if ( nKaonTru >= 153 )  fHistEvntEff->Fill(13);
+
+    }
+
     // Post-data for TTrees
     if ( kPhibool )                 PostData(3, fPhiCandidate);
     if ( kKaonbool )                PostData(4, fKaonCandidate);
@@ -194,7 +209,7 @@ void    AliAnalysisTaskPhiCount::fPostData()
 
 //_____________________________________________________________________________
 
-bool    AliAnalysisTaskPhiCount::fIsPrimaryVertexCandidate ( AliAODEvent* event )
+bool    AliAnalysisTaskPhiCount::fIsPrimaryVertexCandidate ( AliAODEvent* fCurrent_Event )
 {
     // Recovering Primary Vertex from General methods and SPD
     auto    PrimaryVertexSPD    = fAOD->GetPrimaryVertexSPD();
@@ -205,7 +220,7 @@ bool    AliAnalysisTaskPhiCount::fIsPrimaryVertexCandidate ( AliAODEvent* event 
     if ( !PrimaryVertexSPD  ||  PrimaryVertexSPD->GetNContributors() < 1 )
     {
         fFillVtxHist(1);
-        fPostData();
+        fPostData(kTRUE,-1,-1,-1,-1);
         return false;
     }
 
@@ -223,7 +238,7 @@ bool    AliAnalysisTaskPhiCount::fIsPrimaryVertexCandidate ( AliAODEvent* event 
         if ( std::fabs(VertexZSPD-VertexZTRK) > 0.5 )
         {
             fFillVtxHist(2);
-            fPostData();
+            fPostData(kTRUE,-1,-1,-1,-1);
             return false;
         }
     }
@@ -234,13 +249,22 @@ bool    AliAnalysisTaskPhiCount::fIsPrimaryVertexCandidate ( AliAODEvent* event 
     if ( std::fabs(fPrimaryVertex->GetZ()) > 10. )
     {
         fFillVtxHist(3);
-        fPostData();
+        fPostData(kTRUE,-1,-1,-1,-1);
         return false;
     }
     
     // Fill the Vertex Z position histogram
     fHistVertex1->Fill(fPrimaryVertex->GetZ());
     
+    // Check the event is Pile-up from the SPD
+    if ( fCurrent_Event->IsPileupFromSPD() )
+    {
+        fFillVtxHist(4);
+        fPostData(kTRUE,-1,-1,-1,-1);
+        return false;
+    }
+    
+    fFillVtxHist(kTRUE);
     return  true;
 }
 
@@ -265,6 +289,9 @@ bool    AliAnalysisTaskPhiCount::fIsKaonCandidate ( AliAODTrack* track )
     auto ffSigTOF    = std::fabs(fPIDResponse->NumberOfSigmasTOF(track,AliPID::kKaon));
     auto ffSigTPC    = std::fabs(fPIDResponse->NumberOfSigmasTPC(track,AliPID::kKaon));
     
+    fFillPIDHist(track,0);
+    fFillPIDHist(track,3);
+    
     //  CUSTOM
     if ( !fbTPC || (fbTOF && ffSigTOF > 3) )      return false;
     if ( track->Pt() >= 0.28 &&  fbTOF && ffSigTPC > 5. )   return false;
@@ -281,9 +308,6 @@ bool    AliAnalysisTaskPhiCount::fIsKaonCandidate ( AliAODTrack* track )
 
 bool    AliAnalysisTaskPhiCount::fSetKaonPID ( AliAODTrack* track )
 {
-    fFillPIDHist(track,0);
-    fFillPIDHist(track,3);
-    
     // Check the PID is present
     if ( !fPIDResponse ) return false;
     auto fbTPC       = (fPIDResponse->CheckPIDStatus(AliPIDResponse::kTPC, track) == AliPIDResponse::kDetPidOk);
@@ -413,9 +437,6 @@ void    AliAnalysisTaskPhiCount::fFillVtxHist ( Int_t iIndex )
 
 void    AliAnalysisTaskPhiCount::UserExec(Option_t *)
 {
-    // Setting zero all counters and global variables
-    fSetZero();
-    
     // Recovering Event Data
     fAOD = dynamic_cast<AliAODEvent*>(InputEvent());
     fMCD = dynamic_cast<AliMCEvent*>(MCEvent());
@@ -443,9 +464,17 @@ void    AliAnalysisTaskPhiCount::UserExec(Option_t *)
         if (inputHandler)   fPIDResponse = inputHandler->GetPIDResponse();
     }
     
-    fMultUtil = new AliPPVsMultUtils();
-    fMultiplicity = fMultUtil->GetMultiplicityPercentile(fAOD,"V0M",kFALSE);
-    fMultiplicit2 = fMultUtil->GetStandardReferenceMultiplicity(fAOD,kFALSE);
+    // Setting zero all counters and global variables
+    fMultiplicity   =   -100;
+    fMultiplicit2   =   -100;
+    fMultiplicit3   =   -100;
+    fnPhi           =   0;
+    fnPhiTru        =   0;
+    fnKaon          =   0;
+    fnPhiTru        =   0;
+
+    AliMultSelection   *MultSelection = (AliMultSelection*) fAOD->FindListObject("MultSelection");
+    if ( MultSelection )   fMultiplicity   =   MultSelection->GetMultiplicityPercentile("V0M");
     
     // Looping over tracks
     for ( Int_t iTrack(0); iTrack < nTrack; iTrack++ )
@@ -518,11 +547,9 @@ void    AliAnalysisTaskPhiCount::UserExec(Option_t *)
             fnPhiTru++;
         }
     }
-    
+
     // Saving output
-    fFillVtxHist(4);
-    fPostData();
-    
+    fPostData(kFALSE,fnPhi,fnPhiTru,fnKaon,0);
 }
 
 //_____________________________________________________________________________

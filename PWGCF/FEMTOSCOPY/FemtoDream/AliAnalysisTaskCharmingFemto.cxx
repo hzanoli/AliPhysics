@@ -78,6 +78,7 @@ ClassImp(AliAnalysisTaskCharmingFemto)
       fUpperMassSelection(999.),
       fMCBeautyRejection(false),
       fMCBeautyScalingFactor(1.),
+      fUseTrueDOnly(false),
       fApplyML(false),
       fConfigPath(""),
       fMLResponse(nullptr),
@@ -146,6 +147,7 @@ AliAnalysisTaskCharmingFemto::AliAnalysisTaskCharmingFemto(const char *name,
       fUpperMassSelection(999.),
       fMCBeautyRejection(false),
       fMCBeautyScalingFactor(1.),
+      fUseTrueDOnly(false),
       fApplyML(false),
       fConfigPath(""),
       fMLResponse(nullptr),
@@ -410,21 +412,28 @@ void AliAnalysisTaskCharmingFemto::UserExec(Option_t * /*option*/) {
           if (gRandom->Uniform() > fMCBeautyScalingFactor)
             continue;
         }
+        if (fIsMC && fUseTrueDOnly
+            && std::abs(dplusCand.GetMCPDGCode()) != absPdgMom) {
+          continue;
+        }
         dplus.push_back(dplusCand);
         if (!fIsLightweight) {
           fHistDplusEta->Fill(dMeson->Eta());
           fHistDplusPhi->Fill(dMeson->Phi());
           if (fIsMC) {
-            fHistDplusMCPDGPt->Fill(dMeson->Pt(), dplusCand.GetMotherPDG());
-            fHistDplusMCOrigin->Fill(dMeson->Pt(),
+            fHistDplusMCPDGPt->Fill(dplusCand.GetPt(),
+                                    dplusCand.GetMotherPDG());
+            fHistDplusMCOrigin->Fill(dplusCand.GetPt(),
                                      dplusCand.GetParticleOrigin());
             if (dplusCand.GetMCPDGCode() != 0) {
-              fHistDplusMCPtRes->Fill(dMeson->Pt() - dplusCand.GetMCPt(),
-                                      dMeson->Pt());
+              fHistDplusMCPtRes->Fill(dplusCand.GetPt() - dplusCand.GetMCPt(),
+                                      dplusCand.GetPt());
               fHistDplusMCPhiRes->Fill(
-                  dMeson->Phi() - dplusCand.GetMCPhi().at(0), dMeson->Pt());
+                  dplusCand.GetPhi().at(0) - dplusCand.GetMCPhi().at(0),
+                  dplusCand.GetPt());
               fHistDplusMCThetaRes->Fill(
-                  dMeson->Theta() - dplusCand.GetMCTheta().at(0), dMeson->Pt());
+                  dplusCand.GetTheta().at(0) - dplusCand.GetMCTheta().at(0),
+                  dplusCand.GetPt());
             }
           }
           for (unsigned int iChild = 0; iChild < fDmesonPDGs.size(); iChild++) {
@@ -434,31 +443,38 @@ void AliAnalysisTaskCharmingFemto::UserExec(Option_t * /*option*/) {
             fHistDplusChildPhi[iChild]->Fill(track->Phi());
           }
         }
-      }
-      else {
-        AliFemtoDreamBasePart dminusCand(dMeson, fInputEvent, absPdgMom, fDmesonPDGs);
+      } else {
+        AliFemtoDreamBasePart dminusCand(dMeson, fInputEvent, absPdgMom,
+                                         fDmesonPDGs);
         if (fIsMC && fMCBeautyRejection
             && dminusCand.GetParticleOrigin()
                 == AliFemtoDreamBasePart::kBeauty) {
           if (gRandom->Uniform() > fMCBeautyScalingFactor)
             continue;
         }
+        if (fIsMC && fUseTrueDOnly
+            && std::abs(dminusCand.GetMCPDGCode()) != absPdgMom) {
+          continue;
+        }
         dminus.push_back(dminusCand);
         if (!fIsLightweight) {
           fHistDminusEta->Fill(dMeson->Eta());
           fHistDminusPhi->Fill(dMeson->Phi());
           if (fIsMC) {
-            fHistDminusMCPDGPt->Fill(dMeson->Pt(), dminusCand.GetMotherPDG());
-            fHistDminusMCOrigin->Fill(dMeson->Pt(),
+            fHistDminusMCPDGPt->Fill(dminusCand.GetPt(),
+                                     dminusCand.GetMotherPDG());
+            fHistDminusMCOrigin->Fill(dminusCand.GetPt(),
                                       dminusCand.GetParticleOrigin());
             if (dminusCand.GetMCPDGCode() != 0) {
-              fHistDminusMCPtRes->Fill(dMeson->Pt() - dminusCand.GetMCPt(),
-                                       dMeson->Pt());
+              fHistDminusMCPtRes->Fill(
+                  dminusCand.GetPt() - dminusCand.GetMCPt(),
+                  dminusCand.GetPt());
               fHistDminusMCPhiRes->Fill(
-                  dMeson->Phi() - dminusCand.GetMCPhi().at(0), dMeson->Pt());
+                  dminusCand.GetPhi().at(0) - dminusCand.GetMCPhi().at(0),
+                  dminusCand.GetPt());
               fHistDminusMCThetaRes->Fill(
-                  dMeson->Theta() - dminusCand.GetMCTheta().at(0),
-                  dMeson->Pt());
+                  dminusCand.GetTheta().at(0) - dminusCand.GetMCTheta().at(0),
+                  dminusCand.GetPt());
             }
           }
           for (unsigned int iChild = 0; iChild < fDmesonPDGs.size(); iChild++) {
@@ -563,7 +579,9 @@ void AliAnalysisTaskCharmingFemto::UserCreateOutputObjects() {
 
   if (fEvtCuts) {
     fEvtCuts->InitQA();
-    fQA->Add(fEvent->GetEvtCutList());
+    if (fEvent->GetEvtCutList() && !fIsLightweight) {
+      fQA->Add(fEvent->GetEvtCutList());
+    }
     if (fEvtCuts->GetHistList() && !fIsLightweight) {
       fEvtHistList = fEvtCuts->GetHistList();
     } else {
@@ -659,7 +677,7 @@ void AliAnalysisTaskCharmingFemto::UserCreateOutputObjects() {
   fHistDminusInvMassPt = new TH2F(
       "fHistDminusInvMassPt",
       "; #it{p}_{T} (GeV/#it{c}); #it{M}_{K#pi#pi} (GeV/#it{c}^{2})", 100, 0,
-      25, 100, 1.77, 1.97);
+      10, 100, 1.77, 1.97);
   fDChargedHistList->Add(fHistDminusInvMassPt);
   if (!fIsLightweight) {
     fHistDminusEta = new TH1F("fHistDminusEta", ";#eta; Entries", 100, -1, 1);

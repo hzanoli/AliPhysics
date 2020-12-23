@@ -19,7 +19,7 @@
 // Analysis task to compute muon/dimuon kinematic distributions
 // The output is a list of histograms.
 // The macro class can run on AOD or in the train with the ESD filter.
-// R. Arnaldi
+// R. Arnaldi, Luca Micheletti
 //
 //-----------------------------------------------------------------------------
 
@@ -57,10 +57,11 @@
 #include "AliOADBContainer.h"
 #include "AliAODv0.h"
 
-#include "AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut.h"
-#include "AliAODZDC.h"
-
 #include "AliAnalysisTaskPbPbTree_MCut.h"
+#include "AliAODZDC.h"
+#include "AliTriggerAnalysis.h"
+#include "AliVMultiplicity.h"
+#include "AliAODTracklets.h"
 
 // STL includes
 #include <iostream>
@@ -100,11 +101,11 @@ TH1D*        fQy3mTrk[18];                    // <Qyn> tracklets
 TH1D*        fQx3sTrk[18];                    // sigma Qxn tracklets
 TH1D*        fQy3sTrk[18];                    // sigma Qyn tracklets
 
-Double_t CostHE(AliAODTrack*, AliAODTrack*);
-Double_t CostCS(AliAODTrack*, AliAODTrack*);
-Double_t PhiHE(AliAODTrack*, AliAODTrack*);
-Double_t PhiCS(AliAODTrack*, AliAODTrack*);
-Double_t CostEPnB(AliAODTrack*, AliAODTrack*, Double_t);
+Double_t CostHE_PbPb(AliAODTrack*, AliAODTrack*);
+Double_t CostCS_PbPb(AliAODTrack*, AliAODTrack*);
+Double_t PhiHE_PbPb(AliAODTrack*, AliAODTrack*);
+Double_t PhiCS_PbPb(AliAODTrack*, AliAODTrack*);
+Double_t CostEPnB_PbPb(AliAODTrack*, AliAODTrack*, Double_t);
 
 ClassImp(AliAnalysisTaskPbPbTree_MCut)
 //__________________________________________________________________________
@@ -697,12 +698,12 @@ void AliAnalysisTaskPbPbTree_MCut::UserExec(Option_t *)
 	 else fDimuMatch[numdimu]=-1;
    fDimuPhi[numdimu] = dimu->Phi();
 
-	 fDimuCostHE[numdimu] = CostHE(mu0,mu1);
-	 fDimuPhiHE[numdimu] = PhiHE(mu0,mu1);
-	 fDimuCostCS[numdimu] = CostCS(mu0,mu1);
-	 fDimuPhiCS[numdimu] = PhiCS(mu0,mu1);
-   fDimuCostEPnB[numdimu] = CostEPnB(mu0,mu1,fPsi2Trkl);
-   fDimuCostRPnB[numdimu] = CostEPnB(mu0,mu1,fPsi2RP);
+	 fDimuCostHE[numdimu] = CostHE_PbPb(mu0,mu1);
+	 fDimuPhiHE[numdimu] = PhiHE_PbPb(mu0,mu1);
+	 fDimuCostCS[numdimu] = CostCS_PbPb(mu0,mu1);
+	 fDimuPhiCS[numdimu] = PhiCS_PbPb(mu0,mu1);
+   fDimuCostEPnB[numdimu] = CostEPnB_PbPb(mu0,mu1,fPsi2Trkl);
+   fDimuCostRPnB[numdimu] = CostEPnB_PbPb(mu0,mu1,fPsi2RP);
 
 	 LabelOld1[numdimu]=i;
 	 LabelOld2[numdimu]=j;
@@ -766,7 +767,7 @@ void AliAnalysisTaskPbPbTree_MCut::UserExec(Option_t *)
 
 }
 //_____________________________________________________________________________
-Float_t AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::GetVertex(AliAODEvent* aod) const
+Float_t AliAnalysisTaskPbPbTree_MCut::GetVertex(AliAODEvent* aod) const
 {
 
   Float_t vtxz = -999;
@@ -782,7 +783,7 @@ Float_t AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::GetVertex(AliAODEvent* aod) con
   return vtxz;
 }
 //__________________________________________________________
-Short_t AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::GetVertexZ(Float_t vtxZ) const
+Short_t AliAnalysisTaskPbPbTree_MCut::GetVertexZ(Float_t vtxZ) const
 {
     Short_t zvtx = -10;
 
@@ -827,7 +828,7 @@ Short_t AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::GetVertexZ(Float_t vtxZ) const
 
 }
 //_____________________________________________________________________________
-void AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::OpenInfoCalbration(Int_t run)
+void AliAnalysisTaskPbPbTree_MCut::OpenInfoCalbration(Int_t run)
 {
     if (!gGrid) {
         TGrid::Connect("alien://");
@@ -853,7 +854,7 @@ void AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::OpenInfoCalbration(Int_t run)
     tmpFile218q = TFile::Open("alien:///alice/cern.ch/user/l/lmichele/Event_Plane_calibration_files/calibV0TrklNoEtaCutRun218qVtx14MRP2New.root");
     AliOADBContainer* cont218q = (AliOADBContainer*) tmpFile218q->Get("hMultV0BefCorPfpx");
     if((cont218q->GetObject(run))){tmpPerName = "218qVtx14MRP2New";}
-    else{printf("run %i does not belong to LHC18qVtx14MRP2New\n", run);}
+    else{printf("run %i does not belong to LHC18q\n", run);}
     tmpFile218q->Close();
 
     printf("Opening calibV0TrklNoEtaCutRun218rVtx14MRP2New.root\n");
@@ -869,7 +870,8 @@ void AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::OpenInfoCalbration(Int_t run)
 
     TFile* foadb = 0;
     printf("Opening alien:///alice/cern.ch/user/l/lmichele/Event_Plane_calibration_files/calibV0TrklNoEtaCutRun%s.root",tmpPerName.c_str());
-    foadb = TFile::Open(Form("alien:///alice/cern.ch/user/l/lmichele/Event_Plane_calibration_files/calibV0TrklNoEtaCutRun%sVtx14MRP2New.root",strPerName.c_str()));
+    foadb = TFile::Open(Form("alien:///alice/cern.ch/user/l/lmichele/Event_Plane_calibration_files/calibV0TrklNoEtaCutRun%s.root",tmpPerName.c_str()));
+    printf("Reading calibration files...\n");
 
     AliOADBContainer* cont = (AliOADBContainer*) foadb->Get("hMultV0BefCorPfpx");
     if(!cont){
@@ -1185,7 +1187,7 @@ void AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::OpenInfoCalbration(Int_t run)
     }
 }
 //_____________________________________________________________________________
-Double_t AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::CalcCorPhi(Double_t phi, Double_t dPhi) const
+Double_t AliAnalysisTaskPbPbTree_MCut::CalcCorPhi(Double_t phi, Double_t dPhi) const
 {
 
     phi += 39./34.*dPhi;
@@ -1195,9 +1197,9 @@ Double_t AliAnalysisTaskPbPbJPsiTree_Dimuon_MCut::CalcCorPhi(Double_t phi, Doubl
 
 }
 //______________________________________________________________________________
-Double_t CostHE(AliAODTrack* Mu0, AliAODTrack* Mu1){
-  Double_t EBeam = 6500;
-  Double_t mp = 0.93827231;
+Double_t CostHE_PbPb(AliAODTrack* Mu0, AliAODTrack* Mu1){
+  Double_t EBeam = 2510*208;
+  Double_t mp = 195.323567174;
   Double_t pbeam = TMath::Sqrt(EBeam*EBeam - mp*mp);
   Double_t pla10 = Mu0 -> Px();
   Double_t pla11 = Mu0 -> Py();
@@ -1249,14 +1251,14 @@ Double_t CostHE(AliAODTrack* Mu0, AliAODTrack* Mu1){
 }
 //______________________________________________________________________________
 //______________________________________________________________________________
-Double_t PhiHE(AliAODTrack* Mu0, AliAODTrack* Mu1){
+Double_t PhiHE_PbPb(AliAODTrack* Mu0, AliAODTrack* Mu1){
   // Calculation the Helicity aimuthal angle (adapted from code by R. Arnaldi)
-  Double_t EBeam = 6500.;
+  Double_t EBeam = 2510*208;
   if(EBeam <= 0){
     printf("Can not compute phiHE with EBeam=%f\n",EBeam);
     return -999999999;
   }
-  Double_t mp = 0.93827231;
+  Double_t mp = 195.323567174;
   Double_t pbeam = TMath::Sqrt(EBeam*EBeam - mp*mp);
   Double_t pla10 = Mu0 -> Px();
   Double_t pla11 = Mu0 -> Py();
@@ -1314,9 +1316,9 @@ Double_t PhiHE(AliAODTrack* Mu0, AliAODTrack* Mu1){
    return phi;
 }
 //______________________________________________________________________________
-Double_t CostCS(AliAODTrack* Mu0, AliAODTrack* Mu1){
-  Double_t EBeam = 6500.;
-  Double_t mp = 0.93827231;
+Double_t CostCS_PbPb(AliAODTrack* Mu0, AliAODTrack* Mu1){
+  Double_t EBeam = 2510*208;
+  Double_t mp = 195.323567174;
   Double_t pbeam = TMath::Sqrt(EBeam*EBeam - mp*mp);
   Double_t pla10 = Mu0 -> Px();
   Double_t pla11 = Mu0 -> Py();
@@ -1376,14 +1378,14 @@ Double_t CostCS(AliAODTrack* Mu0, AliAODTrack* Mu1){
   return cost;
 }
 //______________________________________________________________________________
-Double_t PhiCS(AliAODTrack* Mu0, AliAODTrack* Mu1){
+Double_t PhiCS_PbPb(AliAODTrack* Mu0, AliAODTrack* Mu1){
   // Cosinus of the Collins-Soper polar decay angle
-  Double_t EBeam = 6500.;
+  Double_t EBeam = 2510*208;
   if(EBeam <= 0){
     printf("Can not compute phiCS with EBeam=%f\n",EBeam);
     return -999999999;
   }
-  Double_t mp = 0.93827231;
+  Double_t mp = 195.323567174;
   Double_t pbeam = TMath::Sqrt(EBeam*EBeam - mp*mp);
   Double_t pla10 = Mu0 -> Px();
   Double_t pla11 = Mu0->Py();
@@ -1440,8 +1442,8 @@ Double_t PhiCS(AliAODTrack* Mu0, AliAODTrack* Mu1){
    return phi;
 }
 //________________________________________________________________________
-Double_t CostEPnB(AliAODTrack* Mu0, AliAODTrack* Mu1, Double_t Psi){
-  printf("CosTheta in the Event-Plane reference frame --> No Boost of the Event-Plane vector in the J/psi rest frame \n");
+Double_t CostEPnB_PbPb(AliAODTrack* Mu0, AliAODTrack* Mu1, Double_t Psi){
+  //printf("CosTheta in the Event-Plane reference frame --> No Boost of the Event-Plane vector in the J/psi rest frame \n");
   Double_t PxMu0      = Mu0 -> Px();
   Double_t PyMu0      = Mu0 -> Py();
   Double_t PzMu0      = Mu0 -> Pz();
@@ -1465,11 +1467,11 @@ Double_t CostEPnB(AliAODTrack* Mu0, AliAODTrack* Mu1, Double_t Psi){
   // --- Calculation of the Q-vector and its orthogonal
   //
   TVector3 Qtr2vect(TMath::Cos(Psi),TMath::Sin(Psi),0.);
-  printf("Event Plane vector : \n");
-  Qtr2vect.Print();
+  //printf("Event Plane vector : \n");
+  //Qtr2vect.Print();
   TVector3 Qtr2vectOrtLab = Qtr2vect.Orthogonal();
-  printf("Event Plane vector orthogonal : \n");
-  Qtr2vectOrtLab.Print();
+  //printf("Event Plane vector orthogonal : \n");
+  //Qtr2vectOrtLab.Print();
   //
   // --- Obtain the dimuon parameters in the CM frame
   //
@@ -1479,27 +1481,27 @@ Double_t CostEPnB(AliAODTrack* Mu0, AliAODTrack* Mu1, Double_t Psi){
   // --- Translate the dimuon parameters in the dimuon rest frame
   //
   TVector3 beta = (-1./pDimuCM.E())*pDimuCM.Vect();
-  printf("Beta : \n");
-  beta.Print();
+  //printf("Beta : \n");
+  //beta.Print();
   TLorentzVector pMu1Dimu = pMu1CM;
-  printf("4-vector mu1 : \n");
-  pMu1Dimu.Print();
+  //printf("4-vector mu1 : \n");
+  //pMu1Dimu.Print();
   TLorentzVector pMu2Dimu = pMu2CM;
-  printf("4-vector mu2 : \n");
-  pMu2Dimu.Print();
+  //printf("4-vector mu2 : \n");
+  //pMu2Dimu.Print();
   pMu1Dimu.Boost(beta);
-  printf("4-vector mu1 boosted : \n");
-  pMu1Dimu.Print();
+  //printf("4-vector mu1 boosted : \n");
+  //pMu1Dimu.Print();
   pMu2Dimu.Boost(beta);
-  printf("4-vector mu2 boosted : \n");
-  pMu2Dimu.Print();
+  //printf("4-vector mu2 boosted : \n");
+  //pMu2Dimu.Print();
 
   //
   // --- Determine the z axis for the EP angle
   //
   TVector3 zaxisEP = Qtr2vectOrtLab.Unit();
-  printf("zaxis Event Plane unitary \n");
-  zaxisEP.Print();
+  //printf("zaxis Event Plane unitary \n");
+  //zaxisEP.Print();
 
   //
   // --- Determine the EP angle (angle between mu+ and the z axis defined above)
@@ -1510,7 +1512,7 @@ Double_t CostEPnB(AliAODTrack* Mu0, AliAODTrack* Mu1, Double_t Psi){
   } else {
     CosTheta_EP = zaxisEP.Dot((pMu2Dimu.Vect()).Unit());
   }
-  printf("CosTheta Event Plane = %f\n",CosTheta_EP);
+  //printf("CosTheta Event Plane = %f\n",CosTheta_EP);
   return CosTheta_EP;
 }
 //________________________________________________________________________

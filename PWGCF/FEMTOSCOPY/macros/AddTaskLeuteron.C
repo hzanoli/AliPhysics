@@ -18,12 +18,14 @@ AliAnalysisTaskSE *AddTaskLeuteron(
   double AntideuteronSigmaLeft = 2.0,
   double AntideuteronSigmaRight = 4.0,
   double Deuteron_pT_low = 0.4,
-  double Deuteron_pT_up = 4.0){
+  double Deuteron_pT_up = 4.0,
+  const char *CutVariation = "0"){
 
   // isHighMultV0:
   // (false)  kINT7:	    minimum bias trigger
   // (true)   kHighMultV0:  high multiplicity trigger
 
+  TString suffix = TString::Format("%s",CutVariation);
   int PionPDG = 211;
   int ProtonPDG = 2212;
   int LambdaPDG = 3122;
@@ -67,7 +69,7 @@ AliAnalysisTaskSE *AddTaskLeuteron(
   }
 
   // Protons
-  TrackCuts1->SetPlotDCADist(false);			// plot DCA_xy vs. pT
+  TrackCuts1->SetPlotDCADist(true);			// plot DCA_xy vs. pT
   TrackCuts1->SetPlotCombSigma(false);			// plot combined sigma: nSigmaTOF vs. nSigmaTPC vs. momentum
   TrackCuts1->SetIsMonteCarlo(isMC);
   TrackCuts1->SetCutCharge(1);				// set electrical charge of particle 1
@@ -103,7 +105,7 @@ AliAnalysisTaskSE *AddTaskLeuteron(
   }
 
   // Antiprotons
-  TrackCuts2->SetPlotDCADist(false);
+  TrackCuts2->SetPlotDCADist(true);
   TrackCuts2->SetPlotCombSigma(false);
   TrackCuts2->SetIsMonteCarlo(isMC);
   TrackCuts2->SetCutCharge(-1);
@@ -133,7 +135,7 @@ AliAnalysisTaskSE *AddTaskLeuteron(
   }
 
   // Deuterons
-  TrackCuts3->SetPlotDCADist(false);
+  TrackCuts3->SetPlotDCADist(true);
   TrackCuts3->SetPlotCombSigma(false);
   TrackCuts3->SetIsMonteCarlo(isMC);
   TrackCuts3->SetCutCharge(1);
@@ -165,7 +167,7 @@ AliAnalysisTaskSE *AddTaskLeuteron(
   }
 
   // Antideuterons
-  TrackCuts4->SetPlotDCADist(false);
+  TrackCuts4->SetPlotDCADist(true);
   TrackCuts4->SetPlotCombSigma(false);
   TrackCuts4->SetIsMonteCarlo(isMC);
   TrackCuts4->SetCutCharge(-1);
@@ -477,7 +479,6 @@ AliAnalysisTaskSE *AddTaskLeuteron(
 
 
   TString addon = "";
-  TString suffix = "";
   TString file = AliAnalysisManager::GetCommonFileName();
 
   TString coutputEventCutsName = Form("%sLeuteronEventCuts%s", addon.Data(), suffix.Data());

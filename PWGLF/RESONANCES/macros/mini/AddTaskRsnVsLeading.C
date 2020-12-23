@@ -5,7 +5,7 @@ AliAnalysisTask *AddTaskRsnVsLeading(TString taskName = "phi",
  Double_t nSigmaPart1TPC = -1, 
  Double_t nSigmaPart2TPC = -1,
  Double_t nSigmaPart1TOF = -1, 
- Double_t nSigmaPart2TOF = -1
+ Double_t nSigmaPart2TOF = -1,
  TString configName = "ConfigPhiLeading.C", 
  TString path = "")
 {
@@ -50,7 +50,7 @@ AliAnalysisTask *AddTaskRsnVsLeading(TString taskName = "phi",
     cutsPair->SetCutScheme(cutY->GetName());
 
     // We will add RSN config file
-    TString macroArgs = TString::Format("(AliRsnMiniAnalysisTask *)%p,%d,%d,%f,%f", task, isMC, isPP, nSigmaPart1, nSigmaPart2);
+    TString macroArgs = TString::Format("(AliRsnMiniAnalysisTask *)%p,%d,%d,%f,%f,%f,%f", task, isMC, isPP, nSigmaPart1TPC, nSigmaPart2TPC, nSigmaPart1TOF, nSigmaPart2TOF);
     TMacro cfg(gSystem->ExpandPathName(TString::Format("%s%s", path.Data(), configName.Data()).Data()));
     Long_t rc = reinterpret_cast<Long_t>(cfg.Exec(macroArgs.Data()));
     if (!rc)
