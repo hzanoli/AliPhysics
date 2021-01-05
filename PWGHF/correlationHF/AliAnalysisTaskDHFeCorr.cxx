@@ -183,7 +183,7 @@ void AliAnalysisTaskDHFeCorr::PostOutput() {
 
 void AliAnalysisTaskDHFeCorr::UserCreateOutputObjects() {
   if (!fYAMLConfig.Reinitialize()) {
-    throw std::runtime_error("Not possible to reload the YAML configuration."); 
+    std::cout<< "Not possible to reload the YAML configuration. This can be a problem if on GRID mode!" << std::endl; 
   }
 
    ConfigureFromYaml();

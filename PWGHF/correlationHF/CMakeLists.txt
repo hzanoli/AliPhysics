@@ -30,6 +30,7 @@ include_directories(${ROOT_INCLUDE_DIRS}
                     ${AliPhysics_SOURCE_DIR}/PWGHF/hfe
                     ${AliPhysics_SOURCE_DIR}/PWGHF/vertexingHF
                     ${AliPhysics_SOURCE_DIR}/PWGHF/correlationHF/DHFe
+                    ${AliPhysics_SOURCE_DIR}/OADB/COMMON/MULTIPLICITY      
   )
 
 # Sources - alphabetical order
