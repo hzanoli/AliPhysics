@@ -3375,7 +3375,7 @@ Bool_t Config_Xikx(
     esdTrackCuts->SetMinDCAToVertexXY(0.06);
     
     // selections for Xi
-    Float_t XiPIDcut=3.;
+    Float_t XiPIDcut=5.;
     Float_t V0dDCA=1.6;
     Float_t XidDCA=1.6;
     Float_t XiMinDCA=0.07;
@@ -3727,7 +3727,7 @@ Bool_t Config_Xik0(
     Int_t iCutK0s=task->AddTrackCuts(cutSetK0s);
     
     // selections for Xi
-    Float_t XiPIDcut=3.;
+    Float_t XiPIDcut=5.;
     Float_t V0dDCA=1.6;
     Float_t XidDCA=1.6;
     Float_t XiMinDCA=0.07;
@@ -3864,6 +3864,8 @@ Bool_t Config_Xik0(
     /* rapidity         */ Int_t yID    = task->CreateValue(AliRsnMiniValue::kY,          kFALSE);
     /* 1st daughter pt  */ Int_t fdpt   = task->CreateValue(AliRsnMiniValue::kFirstDaughterPt,kFALSE);
     /* 2nd daughter pt  */ Int_t sdpt   = task->CreateValue(AliRsnMiniValue::kSecondDaughterPt,kFALSE);
+    /* 1st daughter pt  */ Int_t fdptmc = task->CreateValue(AliRsnMiniValue::kFirstDaughterPt,kTRUE);
+    /* 2nd daughter pt  */ Int_t sdptmc = task->CreateValue(AliRsnMiniValue::kSecondDaughterPt,kTRUE);
     
     // -- Create all needed outputs -----------------------------------------------------------------
     // use an array for more compact writing, which are different on mixing and charges
@@ -3945,7 +3947,11 @@ Bool_t Config_Xik0(
             else out->AddAxis(diffID,200,-0.02,0.02);// axis X: resolution
             out->AddAxis(ptID,200,0.0,20.0);// axis Y: transverse momentum
             out->AddAxis(centID,nmult,multbins);// axis Z: centrality-multiplicity
-        }else{//Phase-space histograms
+        }else if(j==7){//Phase-space histograms
+            out->AddAxis(fdptmc,100,0.,10.);
+            out->AddAxis(sdptmc,100,0.,10.);
+            out->AddAxis(ptID,40,0.,20.);
+        }else{
             out->AddAxis(fdpt,100,0.,10.);
             out->AddAxis(sdpt,100,0.,10.);
             out->AddAxis(ptID,40,0.,20.);
