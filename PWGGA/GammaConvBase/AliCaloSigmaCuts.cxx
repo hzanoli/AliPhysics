@@ -358,13 +358,7 @@ Bool_t AliCaloSigmaCuts::SetNClusterTPCCut(Int_t NClusterTPCCut){
     break;
   case 1:
     fNClusterTPC = 80;
-    break; 
-  case 2:
-    fNClusterTPC = 50;
-    break;
-  case 3:
-    fNClusterTPC = 65;
-    break;       
+    break;  
   default:
     cout<<"Warning: NClusterTPCCut not defined"<<NClusterTPCCut<<endl;
     return kFALSE;
@@ -380,10 +374,7 @@ Bool_t AliCaloSigmaCuts::SetChi2TPCCut(Int_t Chi2TPCCut){
     break;
   case 1:
     fChi2TPC = 4.;
-    break;
-   case 2:
-    fChi2TPC = 3.;
-    break;     
+    break;  
   default:
     cout<<"Warning: Chi2TPCCut not defined"<<Chi2TPCCut<<endl;
     return kFALSE;
@@ -453,13 +444,7 @@ Bool_t AliCaloSigmaCuts::SetDCAXYCut(Int_t DCAXYCut){
     break;
   case 2:
     fDCAXY = 0.02;
-    break;  
-  case 3:
-    fDCAXY = 0.01;
-    break;  
-  case 4:
-    fDCAXY = 0.015;
-    break;        
+    break;    
   default:
     cout<<"Warning: DCAXYCut not defined"<<DCAXYCut<<endl;
     return kFALSE;
@@ -478,13 +463,7 @@ Bool_t AliCaloSigmaCuts::SetDCAZCut(Int_t DCAZCut){
     break;
   case 2:
     fDCAZ = 0.02;
-    break;
-  case 3:
-    fDCAZ = 0.01;
-    break;  
-  case 4:
-    fDCAZ = 0.015;
-    break;            
+    break;    
   default:
     cout<<"Warning: DCAZCut not defined"<<DCAZCut<<endl;
     return kFALSE;
