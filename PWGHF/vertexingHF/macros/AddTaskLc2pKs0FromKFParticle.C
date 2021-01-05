@@ -5,7 +5,7 @@
 #include <TList.h>
 #endif
 
-AliAnalysisTaskSELc2pKs0fromKFP* AddTaskLc2pKs0FromKFParticle(TString finname="", Bool_t IsMC=kTRUE, TString cuttype="", Bool_t writeQATree=kTRUE, Bool_t IsAnaLc2Lpi=kFALSE)
+AliAnalysisTaskSELc2pKs0fromKFP* AddTaskLc2pKs0FromKFParticle(TString finname="", Bool_t IsMC=kTRUE, TString cuttype="", Bool_t writeQATree=kTRUE)
 {
     Bool_t writeLcRecTree = kTRUE;
     Bool_t writeLcMCGenTree = kFALSE;
@@ -41,16 +41,8 @@ AliAnalysisTaskSELc2pKs0fromKFP* AddTaskLc2pKs0FromKFParticle(TString finname=""
 
     AliRDHFCutsKFP *RDHFCutsKFP = new AliRDHFCutsKFP();
     if (stdCuts) RDHFCutsKFP->SetStandardCutsPP2010();
-    else {
-      if (!IsAnaLc2Lpi) {
-        RDHFCutsKFP = (AliRDHFCutsKFP*)fileCuts->Get("Lc2pKs0AnaCuts");
-        RDHFCutsKFP->SetName("Lc2pKs0AnaCuts");
-      }
-      if (IsAnaLc2Lpi) {
-        RDHFCutsKFP = (AliRDHFCutsKFP*)fileCuts->Get("Lc2LpiAnaCuts");
-        RDHFCutsKFP->SetName("Lc2LpiAnaCuts");
-      }
-    }
+    else RDHFCutsKFP = (AliRDHFCutsKFP*)fileCuts->Get("Lc2pKs0AnaCuts");
+    RDHFCutsKFP->SetName("Lc2pKs0AnaCuts");
 
     if (!RDHFCutsKFP) {
       cout << "Specific AliRDHFCutsKFP not found" << endl;
@@ -68,7 +60,6 @@ AliAnalysisTaskSELc2pKs0fromKFP* AddTaskLc2pKs0FromKFParticle(TString finname=""
 
     if(!task) return NULL;
     task->SetMC(IsMC);
-    task->SetAnaLc2Lpi(IsAnaLc2Lpi);
     task->SetDebugLevel(1);
     task->SetWriteLcMCGenTree(writeLcMCGenTree);
     task->SetWriteLcTree(writeLcRecTree);
