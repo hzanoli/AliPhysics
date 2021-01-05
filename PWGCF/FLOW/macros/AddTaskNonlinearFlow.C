@@ -11,21 +11,19 @@
 #endif
 
 AliAnalysisTaskNonlinearFlow* AddTaskNonlinearFlow(
-		Int_t		fFilterbit 		= 96,
-		Double_t	fMinPt			= 0.2,
-		Double_t	fMaxPt			= 3.0,
-                Int_t           trigger                 = 0,
-                Int_t           fSystFlag               = 0,
-                TString         fPeriod                 = "LHC15o",
-                TString         fNtrksName              = "Mult",
-		TString		uniqueID        	= ""
+		Int_t			fFilterbit 		= 96,
+		Double_t	fMinPt				= 0.2,
+		Double_t	fMaxPt				= 3.0,
+                Int_t           trigger                         = 0,
+                TString         fPeriod                         = "LHC15o",
+                TString         fNtrksName                      = "Mult",
+		TString		uniqueID 			= ""
 		)
 {
         // The common parameters
 	Double_t	fEtaCut 			= 0.8;
 	Double_t	fVtxCut				= 10.0;
 	Int_t		TPCclusters		        = 70;
-	Double_t        chi2PerTPCcluster               = 10000;
 	Int_t		fMinITSClus		        = 5;
 	Double_t	fMaxChi2			= 2.5;
 	Bool_t		fUseDCAzCut		        = false;
@@ -63,24 +61,18 @@ AliAnalysisTaskNonlinearFlow* AddTaskNonlinearFlow(
 
 	AliAnalysisTaskNonlinearFlow* taskFlowEp = new AliAnalysisTaskNonlinearFlow("taskFlowEp");
 	taskFlowEp->SetDebugLevel(3);
-	taskFlowEp->SetFilterbit(fFilterbit); // For systematics
-	taskFlowEp->SetFilterbitDefault(fFilterbit);
+	taskFlowEp->SetFilterbit(fFilterbit);
 	taskFlowEp->SetEtaCut(fEtaCut);
-	taskFlowEp->SetVtxCut(fVtxCut); // For systematics
-	taskFlowEp->SetVtxCutDefault(fVtxCut);
+	taskFlowEp->SetVtxCut(fVtxCut);
 	taskFlowEp->SetMinPt(fMinPt);
 	taskFlowEp->SetMaxPt(fMaxPt);
-	taskFlowEp->SetTPCclusters(TPCclusters); // For systematics
-	taskFlowEp->SetTPCclustersDefault(TPCclusters);
-	taskFlowEp->SetChi2PerTPCcluster(chi2PerTPCcluster); // max. chi2 per TPC cluster
+	taskFlowEp->SetTPCclusters(TPCclusters);
 	taskFlowEp->SetMinITSClusters(fMinITSClus);
 	taskFlowEp->SetMaxChi2(fMaxChi2);
 	taskFlowEp->SetUseDCAzCut(fUseDCAzCut);
-	taskFlowEp->SetDCAzCut(fDCAz); // For systematics
-	taskFlowEp->SetDCAzCutDefault(fDCAz); 
+	taskFlowEp->SetDCAzCut(fDCAz);
 	taskFlowEp->SetUseDCAxyCut(fUseDCAxyCut);
-	taskFlowEp->SetDCAxyCut(fDCAxy); // For systematics
-	taskFlowEp->SetDCAxyCutDefault(fDCAxy); 
+	taskFlowEp->SetDCAxyCut(fDCAxy);
 	taskFlowEp->SetIsSample(IsSample);
 	taskFlowEp->SetCentFlag(nCentFl);
 	taskFlowEp->SetTrigger(trigger);
@@ -88,7 +80,6 @@ AliAnalysisTaskNonlinearFlow* AddTaskNonlinearFlow(
 	taskFlowEp->SetNUEFlag(fNUE);
 	taskFlowEp->SetNUA(fNUA);
 	taskFlowEp->SetNtrksName(fNtrksName);
-        taskFlowEp->SetSystFlag(fSystFlag);
 
         taskFlowEp->SetUseWeigthsRunByRun(false);
         taskFlowEp->SetUsePeriodWeigths(false);
@@ -114,17 +105,19 @@ AliAnalysisTaskNonlinearFlow* AddTaskNonlinearFlow(
 		TGrid::Connect("alien:");
 	if(fNUA) {
 		AliAnalysisDataContainer *cin_NUA = mgr->CreateContainer(Form("NUA%s", uniqueID.Data()), TFile::Class(), AliAnalysisManager::kInputContainer);
-               
+                /*
+		TFile *inNUA = (fFilterbit==96)?TFile::Open("alien:///alice/cern.ch/user/k/kgajdoso/EfficienciesWeights/2015/PhiWeight_LHC15o_HIR.root"):
+																		TFile::Open("alien:///alice/cern.ch/user/k/kgajdoso/EfficienciesWeights/2015/PhiWeight_LHC15o_HIR_FB768.root");
+		if(!inNUA) {
+			printf("Could not open weight file!\n");
+			return 0;
+		}
+                */
                 TFile *inNUA;
 
                 if (fPeriod.EqualTo("LHC15o")) {
-			if (fSystFlag == 0) {
-				inNUA = TFile::Open("alien:///alice/cern.ch/user/z/zumoravc/weights/LHC15o/RBRweights.root");
-				taskFlowEp->SetUseWeigthsRunByRun(true);
-                        } else {
-				inNUA = TFile::Open("alien:///alice/cern.ch/user/e/enielsen/WeightsPbPb15o.root");
-				taskFlowEp->SetUseWeigthsRunByRun(true);
-                        }
+ 			inNUA = TFile::Open("alien:///alice/cern.ch/user/z/zumoravc/weights/LHC15o/RBRweights.root");
+			taskFlowEp->SetUseWeigthsRunByRun(true);
                 } else if (fPeriod.EqualTo("LHC17")) {
 	            taskFlowEp->SetUsePeriodWeigths(true);
                     if (trigger == 0) {
@@ -162,12 +155,7 @@ AliAnalysisTaskNonlinearFlow* AddTaskNonlinearFlow(
                     }
                 } 
 					
-                TList* weight_list = NULL;
-		if (fSystFlag == 0) {
-			weight_list = dynamic_cast<TList*>(inNUA->Get("weights"));
-		} else {
-			weight_list = dynamic_cast<TList*>(inNUA->Get("WeightList"));
-		}
+                TList* weight_list = dynamic_cast<TList*>(inNUA->Get("weights"));
 		cin_NUA->SetData(weight_list);
 		mgr->ConnectInput(taskFlowEp,inSlotCounter,cin_NUA);
 		inSlotCounter++;
