@@ -22,15 +22,11 @@
 #include <map>
 
 // simple struct used for merging studies
-struct clusterLabel{
-  clusterLabel(): mesonID(0), clusID(0), daughterID(0), daughterPDG(0),
-                  EClus(0), EFrac(0), ETrue(0), PtMeson(0), EtaMeson(0), OpeningAngle(0),
-                  clusVec()
-                  {};
+typedef struct {
   Int_t mesonID,clusID,daughterID,daughterPDG;
   Float_t EClus,EFrac,ETrue,PtMeson,EtaMeson, OpeningAngle;
   TLorentzVector clusVec;
-};
+} clusterLabel;
 
 class AliAnalysisTaskGammaCalo : public AliAnalysisTaskSE {
   public:
