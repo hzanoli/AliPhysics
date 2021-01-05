@@ -29,6 +29,8 @@ include_directories(${ROOT_INCLUDE_DIRS}
                     ${AliPhysics_SOURCE_DIR}/PWG/Tools/yaml-cpp/include
                     ${AliPhysics_SOURCE_DIR}/PWGHF/hfe
                     ${AliPhysics_SOURCE_DIR}/PWGHF/vertexingHF
+                    ${AliPhysics_SOURCE_DIR}/PWGHF/correlationHF/DHFe
+                    ${AliPhysics_SOURCE_DIR}/OADB/COMMON/MULTIPLICITY      
   )
 
 # Sources - alphabetical order
@@ -69,7 +71,17 @@ set(SRCS
 # Tasks that should only be compiled in ROOT 6
 if(ROOT_VERSION_MAJOR EQUAL 6)
     set(SRCS ${SRCS}
-	AliAnalysisTaskDHFeCorr.cxx
+    AliAnalysisTaskDHFeCorr.cxx
+    DHFe/DHFeCorrElectron.cxx
+    DHFe/DHFeCorrQA.cxx
+    DHFe/DHFeDMeson.cxx
+    DHFe/DHFeDSelection.cxx
+    DHFe/DHFeElectronSelection.cxx
+    DHFe/DHFeEvent.cxx
+    DHFe/DHFeMCParticle.cxx
+    DHFe/DHFeNonHFe.cxx
+    DHFe/DHFeOrigin.cxx
+    DHFe/DHFeUtils.cxx
 	)						
 endif(ROOT_VERSION_MAJOR EQUAL 6)
 
