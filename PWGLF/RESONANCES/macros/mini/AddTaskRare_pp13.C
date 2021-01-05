@@ -3375,7 +3375,7 @@ Bool_t Config_Xikx(
     esdTrackCuts->SetMinDCAToVertexXY(0.06);
     
     // selections for Xi
-    Float_t XiPIDcut=5.;
+    Float_t XiPIDcut=3.;
     Float_t V0dDCA=1.6;
     Float_t XidDCA=1.6;
     Float_t XiMinDCA=0.07;
