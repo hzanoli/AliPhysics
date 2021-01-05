@@ -5,8 +5,6 @@
 //
 #include "AliAODMCHeader.h"
 #include "AliAnalysisManager.h"
-#include "AliAODInputHandler.h"
-#include "AliInputEventHandler.h"
 #include "AliEmcalJet.h"
 #include "AliEmcalParticle.h"
 #include "AliEmcalPythiaInfo.h"
@@ -351,9 +349,9 @@ Bool_t AliAnalysisTaskLundPlane::FillHistograms() {
       Int_t mytrig=0;
       if(fStoreTrig==kTRUE){
         
-        if(fInputHandler->IsEventSelected() & AliVEvent::kINT7 && fInputEvent->GetFiredTriggerClasses().Contains("INT7")) mytrig=0;
-        if(fInputHandler->IsEventSelected() & AliVEvent::kEMCEJE && fInputEvent->GetFiredTriggerClasses().Contains("EJ1")) mytrig=1;
-	if(fInputHandler->IsEventSelected() & AliVEvent::kEMCEJE && fInputEvent->GetFiredTriggerClasses().Contains("EJ2")) mytrig=2;
+        if(fInputEvent->GetFiredTriggerClasses().Contains("INT7")) mytrig=0;
+        if(fInputEvent->GetFiredTriggerClasses().Contains("EJ1")) mytrig=1;
+	if(fInputEvent->GetFiredTriggerClasses().Contains("EJ2")) mytrig=2;
 	
       }
 	
