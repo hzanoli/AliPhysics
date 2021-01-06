@@ -88,6 +88,11 @@ endif(ROOT_VERSION_MAJOR EQUAL 6)
 # Headers from sources
 string(REPLACE ".cxx" ".h" HDRS "${SRCS}")
 
+#Add header only files
+set (HDRS ${HDRS}
+     DHFe/DHFeConfig.h
+     DHFe/DHFeSelectionBase.h)
+
 # Generate the dictionary
 # It will create G_ARG1.cxx and G_ARG1.h / ARG1 = function first argument
 get_directory_property(incdirs INCLUDE_DIRECTORIES)
