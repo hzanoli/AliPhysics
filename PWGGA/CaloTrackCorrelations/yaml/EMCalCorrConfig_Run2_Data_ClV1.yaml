@@ -1,5 +1,4 @@
 configurationName: "EMCal Run2 Data Correction Cluster V1"
-pass: "pass1"
 CellEnergy:
     enabled: true
     createHistos: true
@@ -27,7 +26,7 @@ Clusterizer:
 ClusterExotics:
     enabled: false          # false since applied in the analysis 
     createHistos: false
-    fMaxFcross: 0.95
+    fMaxFcross: 0.97
     fHighEnergyNdiffCut: 50 
 ClusterNonLinearity:
     enabled: true

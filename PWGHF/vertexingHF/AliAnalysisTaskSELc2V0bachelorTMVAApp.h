@@ -39,6 +39,9 @@
 #include <TMVA/Reader.h>
 #include <TMVA/MethodCuts.h>
 #include <TProfile.h>
+#include <TH3D.h>
+
+#include <vector>
 
 /// \class AliAnalysisTaskSELc2V0bachelorTMVAApp
 
@@ -148,9 +151,16 @@ class AliAnalysisTaskSELc2V0bachelorTMVAApp : public AliAnalysisTaskSE
     if(fHistoMCNch) delete fHistoMCNch;
     fHistoMCNch = new TH1F(*h);
   }
-    
+
+  void SetFraction(Int_t a) {ffraction = a;}	
+
+  void SetDownScaling(Float_t a) {fPtLimForDownscaling = a;}
+  
   void SetDebugHistograms(Bool_t flag) {fDebugHistograms = flag;}
   Bool_t GetDebugHistograms() const {return fDebugHistograms;}
+
+  void SetMake3DHisto(Bool_t flag) {fMake3DHisto = flag;}
+  Bool_t GetMake3DHisto() const {return fMake3DHisto;}
 
   void SetAODMismatchProtection(Int_t opt = 0) {fAODProtection = opt;}
   Int_t GetAODMismatchProtection() const {return fAODProtection;}
@@ -440,6 +450,7 @@ class AliAnalysisTaskSELc2V0bachelorTMVAApp : public AliAnalysisTaskSE
   TTree   *fVariablesTreeSgn;         //!<! tree of the candidate variables after track selection (Signal)
   TTree   *fVariablesTreeBkg;         //!<! tree of the candidate variables after track selection (Background)
   Float_t *fCandidateVariables;       //!<! variables to be written to the tree
+  TString * fCandidateVariableNames;  //!<! names of variables that will go to the tree
 
   TH1F* fHistoCentrality;             //!<! histogram with centrality from AliRDHFCuts
   TH1F* fHistoEvents;                 //!<! histogram with number of events analyzed
@@ -529,6 +540,8 @@ class AliAnalysisTaskSELc2V0bachelorTMVAApp : public AliAnalysisTaskSE
   TH2D* fHistoArmenterosPodolanskiV0AOD;     //!<! KF: AOD Armeteros-Podolanski plot for all V0 from KF
   TH2D* fHistoArmenterosPodolanskiV0AODSgn;  //!<! KF: AOD Armeteros-Podolanski plot for V0 from signal Lc from KF
 
+  TH2D* fHistoV0Radius;  //!<! V0 radius
+
   TList *fOutputKF;                   //!<! User output1: list of histograms from KF
 
   Int_t fmcLabelLc;                   /// label of candidate
@@ -584,15 +597,17 @@ class AliAnalysisTaskSELc2V0bachelorTMVAApp : public AliAnalysisTaskSE
   TH2D *fHistoNsigmaTPC;               //!<! 
   TH2D *fHistoNsigmaTOF;               //!<! 
 
+  Bool_t fMake3DHisto;                 /// flag to decide if to use a 3D histo for BDT (bdt, mass, signd0)
   Bool_t fDebugHistograms;             /// flag to decide whether or not to have extra histograms (useful mainly for debug)
-
   Int_t fAODProtection;       /// flag to activate protection against AOD-dAOD mismatch.
                                   /// -1: no protection,  0: check AOD/dAOD nEvents only,  1: check AOD/dAOD nEvents + TProcessID names
 
   Bool_t fUsePIDresponseForNsigma;  /// flag to decide if to take the nSigma from the PIDresponse or from AliAODPidHF
 
   Int_t fNVars;  /// Number of training variables
-
+  Int_t ffraction;  /// Number for tree downscaling at low pt
+  Float_t fPtLimForDownscaling;  /// Lc pt threshold for tree downscaling
+  
   UInt_t fTimestampCut; // cut on timestamp
 
   Bool_t fUseXmlWeightsFile;                   // flag to decide whether to use or not the xml file
@@ -603,6 +618,7 @@ class AliAnalysisTaskSELc2V0bachelorTMVAApp : public AliAnalysisTaskSE
   TString fNamesTMVAVarSpectators;      // vector of the names of the spectators variables
   TString fXmlWeightsFile;              // file with TMVA weights
   TH2D *fBDTHistoTMVA;                  //!<! BDT histo file for the case in which the xml file is used
+  TH3D *fBDTHistoTMVA3d;                  //!<! BDT histo file for the case in which the xml file is used; 3D to use also signd0 (for special studies)
   Bool_t fUseXmlFileFromCVMFS;          // Boolean to acces Xml from CVMFS path
   TString fXmlFileFromCVMFS;            // Path in CVMFS directory
   
@@ -623,8 +639,11 @@ class AliAnalysisTaskSELc2V0bachelorTMVAApp : public AliAnalysisTaskSE
   TH2F* fHistoVzVsNtrUnCorr;         //!<! hist. Vz vs UNCORRECTED tracklets
   TH2F* fHistoVzVsNtrCorr;           //!<! hist. Vz vs corrected tracklets
   
+  std::vector<std::string> fInputNamesVec;        // vector with names of TMVA variables
+  int fNTreeVars;                    // number of variables to fill the tree
+  
   /// \cond CLASSIMP    
-  ClassDef(AliAnalysisTaskSELc2V0bachelorTMVAApp, 12); /// class for Lc->p K0
+  ClassDef(AliAnalysisTaskSELc2V0bachelorTMVAApp, 14); /// class for Lc->p K0
   /// \endcond    
 };
 

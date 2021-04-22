@@ -45,6 +45,8 @@ AliAnaCaloTrackCorrBaseClass::AliAnaCaloTrackCorrBaseClass() :
 TObject(), 
 fNModules(20),                fNRCU(2),        
 fFirstModule(0),              fLastModule(19),
+fNSectors(10),       
+fFirstSector(0),              fLastSector(9),
 fNMaxCols(48),                fNMaxRows(24),  
 fNMaxColsFull(48),            fNMaxRowsFull(24),  
 fNMaxRowsFullMin(0),          fNMaxRowsFullMax(24),  
@@ -796,6 +798,9 @@ void AliAnaCaloTrackCorrBaseClass::InitCaloParameters()
   fFirstModule = 0; 
   fLastModule  = fNModules-1;
   
+  fFirstSector = 0;
+  fLastSector  = fNModules/2 - 1;
+  
   // Set First/Last SM depending on CaloUtils or fiducial cut settings
    
   if ( IsFiducialCutOn() )
@@ -813,13 +818,17 @@ void AliAnaCaloTrackCorrBaseClass::InitCaloParameters()
         
         if     ( minPhi > 70  && maxPhi < 190) // EMCal
         {
-          fFirstModule = 0;
+          fFirstModule =  0;
           fLastModule  = 11;
+          fFirstSector =  0;
+          fLastSector  =  5;
         }
         else if( minPhi > 250 && maxPhi < 330) // DCal
         {
           fFirstModule = 12;
           fLastModule  = 19;
+          fFirstSector =  6;
+          fLastSector  =  9;
         }
       }
     }
@@ -836,6 +845,9 @@ void AliAnaCaloTrackCorrBaseClass::InitCaloParameters()
       
       fFirstModule = GetCaloUtils()->GetFirstSuperModuleUsed();
       fLastModule  = GetCaloUtils()->GetLastSuperModuleUsed();
+      
+      fFirstSector =  fFirstModule / 2;
+      fLastSector  =  fLastModule  / 2;
     }
   }
   
@@ -916,8 +928,11 @@ void AliAnaCaloTrackCorrBaseClass::InitCaloParameters()
 //                  GetName(),fNModules,fFirstModule,fLastModule, fNMaxCols,fNMaxRows, 
 //                  fNMaxColsFull,fNMaxRowsFull, fNMaxRowsFullMin,fNMaxRowsFullMax);
 
-  AliDebug(1,Form("N SM %d, first SM %d, last SM %d, SM col-row (%d,%d), Full detector col-row (%d, %d), partial calo row min-max(%d,%d)",
-                  fNModules,fFirstModule,fLastModule, fNMaxCols,fNMaxRows, 
+  AliDebug(1,Form("N SM %d, first SM %d, last SM %d, N sector %d, first sector %d, last sector %d,"
+                  " SM col-row (%d,%d), Full detector col-row (%d, %d), partial calo row min-max(%d,%d)",
+                  fNModules,fFirstModule,fLastModule, 
+                  fNSectors,fFirstSector,fLastSector, 
+                  fNMaxCols,fNMaxRows, 
                   fNMaxColsFull,fNMaxRowsFull, fNMaxRowsFullMin,fNMaxRowsFullMax));
 }
 
@@ -1067,21 +1082,28 @@ void AliAnaCaloTrackCorrBaseClass::InitHistoRangeArrays()
   {
     Float_t max = GetHistogramRanges()->GetHistoShowerShapeMax();
     Float_t min = GetHistogramRanges()->GetHistoShowerShapeMin();
-      
+
     TCustomBinning ssBinning;
     if (min <= 0 ) ssBinning.SetMinimum(-0.01);
     else           ssBinning.SetMinimum(min);
     
-    if ( min < 0.5 && max > 0.5 ) ssBinning.AddStep(0.50,0.01);  // 51 
-    if ( min < 1.0 && max > 1.0 ) ssBinning.AddStep(1.00,0.05);  // 10
-    if ( min < 3.0 && max > 3.0 ) ssBinning.AddStep(3.00,0.10);  // 20
-    if ( min < 5.0 && max > 5.0 ) ssBinning.AddStep(5.00,0.25);  // 20
-    
-    if      ( max <= 0.5 ) ssBinning.AddStep(max,0.01);  // 51 
-    else if ( max <= 1.0 ) ssBinning.AddStep(max,0.05);  // 10
-    else if ( max <= 3.0 ) ssBinning.AddStep(max,0.10);  // 20
-    else if ( max <= 5.0 ) ssBinning.AddStep(max,0.25);  // 20
-    else                   ssBinning.AddStep(max,0.50);
+    if ( fHistoPtBinNonConstantInArray )
+    {
+      if ( min < 0.5 && max > 0.5 ) ssBinning.AddStep(0.50,0.01);  // 51
+      if ( min < 1.0 && max > 1.0 ) ssBinning.AddStep(1.00,0.05);  // 10
+      if ( min < 3.0 && max > 3.0 ) ssBinning.AddStep(3.00,0.10);  // 20
+      if ( min < 5.0 && max > 5.0 ) ssBinning.AddStep(5.00,0.25);  // 20
+
+      if      ( max <= 0.5 ) ssBinning.AddStep(max,0.01);  // 51
+      else if ( max <= 1.0 ) ssBinning.AddStep(max,0.05);  // 10
+      else if ( max <= 3.0 ) ssBinning.AddStep(max,0.10);  // 20
+      else if ( max <= 5.0 ) ssBinning.AddStep(max,0.25);  // 20
+      else                   ssBinning.AddStep(max,0.50);
+    }
+    else
+    {
+      ssBinning.AddStep(max, (max-min) / GetHistogramRanges()->GetHistoShowerShapeBins());
+    }
     
     TArrayD ssBinsArray;
     ssBinning.CreateBinEdges(ssBinsArray);
@@ -1311,6 +1333,7 @@ void AliAnaCaloTrackCorrBaseClass::InitHistoRangeArrays()
     TCustomBinning sumBinning;
     sumBinning.SetMinimum(0);
     
+    if ( max >   2 ) sumBinning.AddStep(  2, 0.10); // 20
     if ( max >   4 ) sumBinning.AddStep(  4, 0.20); // 20
     if ( max >  10 ) sumBinning.AddStep( 10, 0.50); // 12
     if ( max >  25 ) sumBinning.AddStep( 25, 1.00); // 15
@@ -1318,7 +1341,8 @@ void AliAnaCaloTrackCorrBaseClass::InitHistoRangeArrays()
     if ( max > 100 ) sumBinning.AddStep(100, 5.00); // 10
     if ( max > 200 ) sumBinning.AddStep(200,10.00); // 10
  
-    if      ( max <=   4 ) sumBinning.AddStep(max, 0.20); 
+    if      ( max <=   2 ) sumBinning.AddStep(max, 0.10); 
+    else if ( max <=   4 ) sumBinning.AddStep(max, 0.20); 
     else if ( max <=  10 ) sumBinning.AddStep(max, 0.50); 
     else if ( max <=  25 ) sumBinning.AddStep(max, 1.00); 
     else if ( max <=  50 ) sumBinning.AddStep(max, 2.50); 
@@ -1346,6 +1370,8 @@ void AliAnaCaloTrackCorrBaseClass::InitHistoRangeArrays()
     if (min < -25 && max > -25 ) sueBinning.AddStep(-25, 2.5); // 10
     if (min < -10 && max > -10 ) sueBinning.AddStep(-10, 1.0); // 15
     if (min < -4  && max > -4  ) sueBinning.AddStep(-4 , 0.5); // 12
+    if (min < -2  && max > -2  ) sueBinning.AddStep(-2 , 0.2); // 10
+    if (min <  2  && max >  2  ) sueBinning.AddStep( 2 , 0.1); // 10
     if (min <  4  && max >  4  ) sueBinning.AddStep( 4 , 0.2); // 20
     if (min < 10  && max >  10 ) sueBinning.AddStep( 10, 0.5); // 12
     if (min < 25  && max >  25 ) sueBinning.AddStep( 25, 1.0); // 15
@@ -1359,6 +1385,8 @@ void AliAnaCaloTrackCorrBaseClass::InitHistoRangeArrays()
     else if ( max <= -25 ) sueBinning.AddStep(max, 2.5); 
     else if ( max <= -10 ) sueBinning.AddStep(max, 1.0); 
     else if ( max <= -4  ) sueBinning.AddStep(max, 0.5); 
+    else if ( max <= -2  ) sueBinning.AddStep(max, 0.2); 
+    else if ( max <=  2  ) sueBinning.AddStep(max, 0.1); 
     else if ( max <=  4  ) sueBinning.AddStep(max, 0.2); 
     else if ( max <=  10 ) sueBinning.AddStep(max, 0.5); 
     else if ( max <=  25 ) sueBinning.AddStep(max, 1.0); 
@@ -1420,6 +1448,22 @@ void AliAnaCaloTrackCorrBaseClass::InitHistoRangeArrays()
     GetHistogramRanges()->SetHistoMassArr(massBinsArray);
   }
   
+  if ( GetHistogramRanges()->GetHistoSpherocityArr().GetSize() == 0 )
+  {
+    Float_t min = GetHistogramRanges()->GetHistoSpherocityMin();
+    Float_t max = GetHistogramRanges()->GetHistoSpherocityMax();
+    Float_t binWidth = (max - min) / 20;
+    //GetHistogramRanges()->GetHistoSpherocityBins();
+
+    TCustomBinning spheBinning;
+    spheBinning.SetMinimum(min);
+    spheBinning.AddStep(max, binWidth);
+
+    TArrayD spheBinsArray;
+    spheBinning.CreateBinEdges(spheBinsArray);
+    GetHistogramRanges()->SetHistoSpherocityArr(spheBinsArray);
+  }
+
   if ( GetHistogramRanges()->GetHistoCentralityArr().GetSize() == 0 )
     AliAnaCaloTrackCorrBaseClass::SetEventCentralityBins();
 }

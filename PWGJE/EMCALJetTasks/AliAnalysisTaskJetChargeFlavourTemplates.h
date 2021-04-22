@@ -1,36 +1,15 @@
-#ifndef AliAnalysisTaskJetChargeFlavourTemplates_H
-#define AliAnalysisTaskJetChargeFlavourTemplates_H
+#ifndef ALIANALYSISTASKJETCHARGETEMPLATES_H
+#define ALIANALYSISTASKJETCHARGETEMPLATES_H
 
-class TH1;
-class TH2;
-class TH3;
-class TH3F;
 class TTree;
-class THnSparse;
-class TClonesArray;
-class TArrayI;
 class AliAnalysisManager;
-class AliJetContainer;
-class AliEmcalJetFinder;
-class AliFJWrapper;
 
 #include "AliAnalysisTaskEmcalJet.h"
-#include "AliFJWrapper.h"
-#include "AliClusterContainer.h"
-#include <TChain.h>
-#include <fastjet/PseudoJet.hh>
-#include <fastjet/PseudoJet.hh>
-#include <fastjet/SharedPtr.hh>
-
 
 
 class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet {
  public:
 
-  enum JetShapeSub {
-    kNoSub = 0,
-    kConstSub = 1
-  };
 
   AliAnalysisTaskJetChargeFlavourTemplates();
   AliAnalysisTaskJetChargeFlavourTemplates(const char *name);
@@ -45,7 +24,6 @@ class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet 
   void SetCentralitySelectionOn(Bool_t t)  { fCentSelectOn = t; }
   void SetMinCentrality(Float_t t)         { fCentMin = t; }
   void SetMaxCentrality(Float_t t)         { fCentMax = t; }
-  void SetJetShapeSub(JetShapeSub t)       { fJetShapeSub = t; }
   void SetJetRadius(Double_t t)            { fJetRadius = t; }
 
  protected:
@@ -56,8 +34,6 @@ class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet 
   // Essential variables
   // Jet container to be analysed: 0 for raw, 1 for subtracted
   Int_t                               fContainer;
-  // Jet subtraction method
-  JetShapeSub                         fJetShapeSub;
   // Jet lower Pt threshold
   Float_t                             fPtThreshold;
   // Switch on/off centrality selection
@@ -69,9 +45,6 @@ class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet 
   // Jet radius
 
   Double_t                            fJetRadius;
-  Double_t                            fTotalJets;
-  Double_t                            fFailedJets;
-  Double_t                            EventNumber;
   // Splits Jets into too high and Lower Pt Bins
   // User histograms and output tree
   // Histograms first
@@ -87,7 +60,7 @@ class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet 
   TH1F                                *JCDown;
   TH1F                                *JCGluon;
   TH1F                                *JCOther;
-
+  TH1F                                *JCUnmatched;
 
   TH1F                                *JCLow;
 
@@ -95,6 +68,7 @@ class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet 
   TH1F                                *JCDownLow;
   TH1F                                *JCGluonLow;
   TH1F                                *JCOtherLow;
+  TH1F                                *JCUnmatchedLow;
 
   TH1F                                *JCMid;
 
@@ -102,6 +76,7 @@ class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet 
   TH1F                                *JCDownMid;
   TH1F                                *JCGluonMid;
   TH1F                                *JCOtherMid;
+  TH1F                                *JCUnmatchedMid;
 
   TH1F                                *JCHigh;
 
@@ -109,12 +84,11 @@ class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet 
   TH1F                                *JCDownHigh;
   TH1F                                *JCGluonHigh;
   TH1F                                *JCOtherHigh;
-
+  TH1F                                *JCUnmatchedHigh;
   // Here is the TTree
-
   TTree                               *fTreeJets;
   // These are the branch variables; there are nBranches of them
-  static const Int_t nBranchesJetChargeFlavourTemplates = 23;
+  static const Int_t nBranchesJetChargeFlavourTemplates = 27;
   Double_t                            fTreeBranch[nBranchesJetChargeFlavourTemplates];
   TChain                              *pChain;
 
@@ -122,6 +96,6 @@ class AliAnalysisTaskJetChargeFlavourTemplates : public AliAnalysisTaskEmcalJet 
   AliAnalysisTaskJetChargeFlavourTemplates(const AliAnalysisTaskJetChargeFlavourTemplates&);            // not implemented
   AliAnalysisTaskJetChargeFlavourTemplates &operator=(const AliAnalysisTaskJetChargeFlavourTemplates&); // not implemented
 
-  ClassDef(AliAnalysisTaskJetChargeFlavourTemplates, 1)
+  ClassDef(AliAnalysisTaskJetChargeFlavourTemplates, 2)
 };
 #endif

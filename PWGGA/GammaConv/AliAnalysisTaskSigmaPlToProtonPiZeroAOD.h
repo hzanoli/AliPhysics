@@ -87,8 +87,12 @@ class AliAnalysisTaskSigmaPlToProtonPiZeroAOD : public AliAnalysisTaskSE
     Double_t GetPodAlpha(TLorentzVector sigmaVektor, TLorentzVector protonVektor, TLorentzVector rekombinatedPi0);
     Double_t GetQT(TLorentzVector sigmaVektor, TLorentzVector rekombinatedPi0);
 
-    Int_t IsRealProton(AliAODTrack* track, TClonesArray *fAODMCTrackArray);
-    Int_t IsRealPhoton(AliAODConversionPhoton *PhotonCandidate, TClonesArray *fAODMCTrackArray);
+    Int_t IsRealProton(AliAODTrack* track, TClonesArray *fAODMCTrackArray, Int_t iCut, Double_t fWeightJetJetMC, Int_t fill);
+    Int_t IsRealPhoton(AliAODConversionPhoton *PhotonCandidate, TClonesArray *fAODMCTrackArray, Int_t iCut, Double_t fWeightJetJetMC);
+    Int_t IsProtonFromXi0(AliAODTrack* track, TClonesArray *fAODMCTrackArray, Int_t iCut, Double_t fWeightJetJetMC, Int_t fill);
+    Int_t IsPhotonFromXi0(AliAODConversionPhoton *PhotonCandidate, TClonesArray *fAODMCTrackArray, Int_t iCut, Double_t fWeightJetJetMC);
+    Int_t IsProtonFromLambda(AliAODTrack* track, TClonesArray *fAODMCTrackArray, Int_t iCut, Double_t fWeightJetJetMC, Int_t fill);
+    Int_t IsRealPhotonFromSigmaToProtonPhoton(AliAODConversionPhoton *PhotonCandidate, TClonesArray *fAODMCTrackArray, Int_t iCut, Double_t fWeightJetJetMC);
     void CalculateBackgroundSwappWGammaGamma(vector < AliVCluster* > photon, vector < AliAODTrack* > proton, Double_t vpos[3], Int_t iCut, Double_t fWeightJetJetMC);
     void CalculateBackgroundSwappWProtonPion(vector < TLorentzVector > pions, vector < AliAODTrack* > proton, Int_t iCut, Double_t fWeightJetJetMC);
 
@@ -106,14 +110,23 @@ class AliAnalysisTaskSigmaPlToProtonPiZeroAOD : public AliAnalysisTaskSE
         TH2F**                  fHistSigmaPlusMCTrueProton; //!
         TH2F**                  fHistSigmaPlusMCTruePion; //!
         TH2F**                  fHistDoubleCountTrueSigmaInvMassPt; //!
-        TH1F*                   fHistGenSigmaPt; //!
-        TH1F*                   fHistGenSigmaPerEvent; //!
-        TH1F*                   fHistGenProtonPt;//!
-        TH1F*                   fHistGenPiZeroPt; //!
-        TH2F*                   fHistSigmaPtEta; //!
-        TH2F*                   fHistProtonPtEta; //!
-        TH2F*                   fHistPi0PtEta; //!
-        TH1F*                   fHistGenAngleProtonPiZero; //!
+        TH1F**                  fHistGenSigmaPt; //!
+        TH1F**                  fHistGenSigmaPerEvent; //!
+        TH1F**                  fHistGenProtonPt;//!
+        TH1F**                  fHistGenPiZeroPt; //!
+        TH2F**                  fHistSigmaPtEta; //!
+        TH2F**                  fHistProtonPtEta; //!
+        TH2F**                  fHistPi0PtEta; //!
+        TH1F**                  fHistGenSigmaP;  //!
+        TH1F**                  fHistGenProtonP;  //!
+        TH1F**                  fHistGenPiZeroP;  //!
+        TH2F**                  fHistGenSigmaPTProtonPT;  //!
+        TH2F**                  fHistGenSigmaPTPiZeroPT;  //!
+        TH2F**                  fHistGenSigmaPTSigmaPT;  //!
+        TH2F**                  fHistGenSigmaPProtonP;  //!
+        TH2F**                  fHistGenSigmaPPiZeroP;  //!
+        TH2F**                  fHistGenSigmaPSigmaP;  //!
+        TH1F**                  fHistGenAngleProtonPiZero; //!
         TH2F**                  fHistReconstructedMassPi0; //!
         TH2F**                  fHistReconstructedMassPi0MC; //!
         TH2F**                  fHistReconstructedMassPi0wCut; //!
@@ -121,13 +134,14 @@ class AliAnalysisTaskSigmaPlToProtonPiZeroAOD : public AliAnalysisTaskSE
         TH2F**                  fHistPodolanski; //!
         TH2F**                  fHistPodolanskiWCut; //!
         TH2F**                  fHistPodolanskiWCutTrue; //!
-        TH2F*                   fHistPodolanskiGenTrue; //!
+        TH2F**                  fHistPodolanskiGenTrue; //!
         TH1F**                  fHistAllTracksPt; //!
         TH1F**                  fHistProtonPt; //!
         TH1F**                  fHistTrueProtonPt; //!
-        TH2F*                   fHistThetaPhiTrueSigmaPl; //!
+        TH2F**                  fHistThetaPhiTrueSigmaPl; //!
         TH2F**                  fHistThetaPhi; //!
         TH2F**                  fHistThetaPhiProton; //!
+        TH1F**                  fHistSigmaPlusYEta; //!
         TH1F**                  fHistClusterE; //!
         TH1F**                  fHistClusterEWOCuts; //!
         TH1F**                  fHistNClusWoCuts; //!
@@ -141,16 +155,44 @@ class AliAnalysisTaskSigmaPlToProtonPiZeroAOD : public AliAnalysisTaskSE
         TH2F**                  fHistTrackDCAZ; //!
         TH2F**                  fHistTrackDCAXYTrue; //!
         TH2F**                  fHistTrackDCAZTrue; //!
+        TH2F**                  fHistTrackDCAXYLambda; //!
+        TH2F**                  fHistTrackDCAZLambda; //!
         TH2F**                  fHistTrackDCAXYwCuts; //!
         TH2F**                  fHistTrackDCAZwCuts; //!
         TH2F**                  fHistTrackDCAXYTruewCuts; //!
         TH2F**                  fHistTrackDCAZTruewCuts; //!
+        TH2F**                  fHistTrackDCAXYLambdawCuts; //!
+        TH2F**                  fHistTrackDCAZLambdawCuts; //!
         TH2F**                  fHistDEDx; //!
+        TH2F**                  fHistTOFBeta; //!
         TH2F**                  fHistTPCSignal; //!
+        TH1F**                  fHistTPCCluster; //!
+        TH1F**                  fHistTPCClusterTrue; //!
+        TH1F**                  fHistTPCchi2; //!
+        TH1F**                  fHistTPCchi2True; //!
+        TH1F**                  fHistITSCluster; //!
+        TH1F**                  fHistITSClusterTrue; //!
+        TH1F**                  fHistITSchi2; //!
+        TH1F**                  fHistITSchi2True; //!
+        TH1F**                  fHistTPCClusterwCut; //!
+        TH1F**                  fHistTPCClusterTruewCut; //!
+        TH1F**                  fHistTPCchi2wCut; //!
+        TH1F**                  fHistTPCchi2TruewCut; //!
+        TH1F**                  fHistITSClusterwCut; //!
+        TH1F**                  fHistITSClusterTruewCut; //!
+        TH1F**                  fHistITSchi2wCut; //!
+        TH1F**                  fHistITSchi2TruewCut; //!
         TH2F**                  fHistRotationWGammaGamma; //!
         TH2F**                  fHistRotationWProtonPion; //!
         TH2F**                  fHistSigmaMassPtWoPodCut; //!
         TH2F**                  fHistSigmaMassPtWoPodCutMC; //!
+        TH1F**                  fHistNLoopsProton; //!
+        TH1F**                  fHistNLoopsGamma; //!
+        TH2F**                  fHistXi0MC; //! 
+        TH2F**                  fHistSigmaPlusStar; //! 
+        TH2F**                  fHistSigmaZeroStar; //! 
+        TH2F**                  fHistSigmaToProtonPhoton; //! 
+        TH1F**                  fHistGenSigmaToProtonPhotonPt; //!
         TGenPhaseSpace          fGenPhaseSpace;                                       // For generation of decays into two gammas
         AliV0ReaderV1*          fV0Reader;                                            // basic photon Selection Task
         TString                 fV0ReaderName;
@@ -181,7 +223,7 @@ class AliAnalysisTaskSigmaPlToProtonPiZeroAOD : public AliAnalysisTaskSE
 
         void FillfHistNEvents(Int_t icut, Float_t in, Double_t fWeightJetJetMC) { if(fHistNEvents[icut]) fHistNEvents[icut]->Fill(in, fWeightJetJetMC); }
 
-        ClassDef(AliAnalysisTaskSigmaPlToProtonPiZeroAOD, 25);
+        ClassDef(AliAnalysisTaskSigmaPlToProtonPiZeroAOD, 29);
 };
 
 #endif

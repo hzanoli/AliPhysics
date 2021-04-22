@@ -64,13 +64,13 @@ public:
   virtual void SetReduceDphi(Double_t mode){fReduceDphi=mode;}
   virtual void SetSymmetricFMD(Bool_t mode){fSymmetricFMD=mode;}
   virtual void SetLikeSign(Bool_t mode){fLikeSign=mode;}
-  virtual void Set2Dfit(Bool_t mode){fIs2Dfit=mode;}
-  virtual void SetPtMax(Float_t mode){fPtMax=mode;}
-  virtual void SetPtMin(Float_t mode){fPtMin=mode;}
-  virtual void Setacceptancehole(Bool_t mode){fmakehole=mode;}
+  virtual void SetPtMax(Float_t mode)   {fPtMax=mode;}
+  virtual void SetPtMin(Float_t mode)   {fPtMin=mode;}
+  virtual void SetAssoCut(Float_t mode) {fAsscoptCut=mode;}
   virtual void SetAnalysisCent(TString mode) { fCentType = mode; }
   virtual void SetAnalysisCollisionType(TString mode) { fcollisiontype = mode; }
-  virtual void Setmcprim(Bool_t mode){fprim=mode;}
+  virtual void SetmcprimFMD(Bool_t mode){fprimFMD=mode;}
+  virtual void SetmcprimTPC(Bool_t mode){fprimTPC=mode;}
   virtual void SetCentCalib(Bool_t mode) { fcentcalib= mode; }
 
 
@@ -154,16 +154,15 @@ private:
   Bool_t fFMDcut;
   Int_t fFMDcutmode;
   Double_t fReduceDphi;
-  Bool_t fmakehole;
   TString fAnaMode;
   TString fasso;
   Bool_t fPID;
   Bool_t fSymmetricFMD;
   Bool_t fLikeSign;
-  Bool_t fIs2Dfit;
 
   TString fCentType;
-  Bool_t fprim;
+  Bool_t fprimTPC;
+  Bool_t fprimFMD;
   Bool_t fcentcalib;
   Int_t fNEntries;
   
@@ -186,6 +185,7 @@ private:
   Float_t fCutChargedDCAxyMax;  
   Double_t fPtMin;
   Double_t fPtMax;
+  Double_t fAsscoptCut;
   Double_t fEtaMax;
   Double_t fEtaMaxExtra;
   Double_t fEtaMinExtra;
@@ -197,7 +197,6 @@ private:
   AliAODEvent *fEvent; //  AOD Event
   AliMCEvent* mcEvent;
   AliAODVertex *lPrimaryBestVtx;
-  Double_t tPrimaryVtxPosition[3];
   Double_t fPrimaryZVtx;
 
   AliAODVZERO *fvzero;
@@ -223,7 +222,7 @@ private:
   TH1F *fHistCentrality_beforeFMDMulcut;
   TH2F* fHistCentzvertex;
   TH2F* fHistCentV0vsTracklets;
-  TH2F* fHistCentV0vsTrackletsbefore;
+  TH2F* fHistCentvsTrackletsbefore;
   TH2F* mixedDist;
   TH2F* mixedDist2;
   
@@ -283,7 +282,6 @@ private:
 
 
   TH1F *fHist_Stat;
-  TH1F *fHist_V0Stat;
 
   AliTHn *fHistTriggerTrack;
   AliTHn *fHistReconstTrack;
@@ -291,7 +289,7 @@ private:
   AliTHn *fHistReconstTrackMix;
 
   // only for test of dphi
-  TH2D *fTPCTPCdphi_deta_4_2;
+//  TH2D *fTPCTPCdphi_deta_4_2;
 /*
   TH1D *fTPCTPCdphi_deta_4_1;
   TH1D *fTPCTPCdphi_deta_4_0;
